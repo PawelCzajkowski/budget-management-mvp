@@ -20,7 +20,7 @@ class BudgetItem(TypedDict):
     name: Annotated[str, "Name of the budget item"]
     owner_id: Annotated[str, "Owner of the budget item"]
     account_number: Annotated[str, "Account number for the budget item"]
-    planned_amounts: Annotated[Dict[str, Decimal], "Planned amounts for each period"]
+    planned_amounts: Annotated[list[Decimal], "Planned amounts for each period"]
     period_id: Annotated[str, "ID of the period this item belongs to"]
 
 
@@ -31,12 +31,12 @@ class Period(TypedDict):
     name: Annotated[str, "Name of the period"]
     start_date: Annotated[str, "Start date of the period in ISO format"]
     end_date: Annotated[str, "End date of the period in ISO format"]
-    budget_items: Annotated[Dict[str, BudgetItem], "Items planned for this period"]
+    budget_items: Annotated[list[BudgetItem], "Items planned for this period"]
 
 class Budget(TypedDict):
     id: Annotated[str, "Unique identifier for the budget"]
     owner_id: Annotated[str, "ID of the user who owns the budget"]
     name: Annotated[str, "Name of the budget"]
     period_type: Annotated[PeriodType, "Type of the budget period (e.g., WEEK, MONTH, QUARTER, YEAR)"]
-    periods: Annotated[Dict[str, Period], "Periods associated with the budget"]
+    periods: Annotated[list[Period], "Periods associated with the budget"]
     summary: Annotated[Decimal, "Summary amount for the budget item"]
