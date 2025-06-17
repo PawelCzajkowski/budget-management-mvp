@@ -22,25 +22,25 @@ class PeriodDTO(BaseModel):
     name: Optional[str] = Field(None, description="Name of the period (e.g., 'Q1 2024')")
     # expenses: Optional[list[ExpenseDTO]] = Field(None, description="List of expense items for this period")
 
-class BudgetDTO(BaseModel):
+class BudgetItemDTO(BaseModel):
     """
-    Data Transfer Object for Budget.
-    Represents a budget with its details and associated items.
+    Data Transfer Object for Budget Item.
+    Represents a budget item with its details and associated expenses.
     """
-    owner: Optional[str] = Field(None, description="Owner or responsible person for the budget")
-    name: Optional[str] = Field(None, description="Name of the budget")
-    account_number: Optional[str] = Field(None, description="Primary account number for the budget")
+    owner: Optional[str] = Field(None, description="Owner or responsible person for the budget item")
+    name: Optional[str] = Field(None, description="Name of the budget item")
+    account_number: Optional[str] = Field(None, description="Primary account number for the budget item")
     # periods: Optional[list[PeriodDTO]] = Field(None, description="List of budget periods")
     period_names: Optional[list[str]] = Field(None, description="List of names for each budget period")
     planned_amount_per_period: Optional[list[Decimal]] = Field(None, description="List of planned amounts for each period")
     summary: Optional[Decimal] = Field(None, description="Total budget amount across all periods")
 
-class BudgetListDTO(BaseModel):
+class BudgetDTO(BaseModel):
     """
     Data Transfer Object for a list of Budgets.
     Represents a collection of budget items.
     """
-    list_of_budgets: list[BudgetDTO]  # Match the JSON structure from mock data
+    list_of_budgets: list[BudgetItemDTO]  # Match the JSON structure from mock data
 
 class ComplexBudgetDTO(BaseModel):
     """
@@ -48,13 +48,13 @@ class ComplexBudgetDTO(BaseModel):
     Represents a complex budget with additional features and details.
     """
     period_names: list[str] = Field(..., description="List of headers for the budget")
-    list_of_budgets: list[BudgetDTO]
+    list_of_budgets: list[BudgetItemDTO]
 
     @classmethod
-    def parse_from_budget_list(cls, input: BudgetListDTO) -> 'ComplexBudgetDTO':
+    def parse_from_budget_list(cls, input: BudgetDTO) -> 'ComplexBudgetDTO':
         """
-        Parse a BudgetListDTO into a ComplexBudgetDTO object.
-        
+        Parse a BudgetDTO into a ComplexBudgetDTO object.
+
         Args:
             input: BudgetListDTO object containing the list of budgets
             
