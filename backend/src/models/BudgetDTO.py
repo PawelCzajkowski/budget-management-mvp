@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -35,9 +35,42 @@ class BudgetDTO(BaseModel):
     planned_amount_per_period: Optional[list[Decimal]] = Field(None, description="List of planned amounts for each period")
     summary: Optional[Decimal] = Field(None, description="Total budget amount across all periods")
 
+class BudgetListDTO(BaseModel):
+    """
+    Data Transfer Object for a list of Budgets.
+    Represents a collection of budget items.
+    """
+    list_of_budgets: list[BudgetDTO]  # Match the JSON structure from mock data
+
 class ComplexBudgetDTO(BaseModel):
     """
     Data Transfer Object for Complex Budget.
     Represents a complex budget with additional features and details.
     """
-    list_of_Budget: List[BudgetDTO]
+    period_names: list[str] = Field(..., description="List of headers for the budget")
+    list_of_budgets: list[BudgetDTO]
+
+    @classmethod
+    def parse_from_budget_list(cls, input: BudgetListDTO) -> 'ComplexBudgetDTO':
+        """
+        Parse a BudgetListDTO into a ComplexBudgetDTO object.
+        
+        Args:
+            input: BudgetListDTO object containing the list of budgets
+            
+        Returns:
+            ComplexBudgetDTO: A new instance of ComplexBudgetDTO
+        
+        Raises:
+            ValueError: If the input budget list is empty
+        """
+        if not input or not input.list_of_budgets:
+            raise ValueError("Input budget list cannot be empty")
+
+        # Get period names from the first budget (they should be the same for all budgets)
+        period_names = input.list_of_budgets[0].period_names if input.list_of_budgets[0].period_names else []
+
+        return cls(
+            period_names=period_names,
+            list_of_budgets=input.list_of_budgets
+        )
