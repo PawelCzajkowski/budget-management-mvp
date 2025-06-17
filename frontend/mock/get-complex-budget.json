@@ -1,0 +1,120 @@
+{
+    "period_names": [
+        "Period 1",
+        "Period 2",
+        "Period 3",
+        "Period 4",
+        "Period 5",
+        "Period 6",
+        "Period 7",
+        "Period 8",
+        "Period 9",
+        "Period 10",
+        "Period 11",
+        "Period 12"
+    ],
+    "list_of_budgets": [
+        {
+            "owner": "Owner A",
+            "name": "Item 1",
+            "account_number": "ABC 123.4",
+            "period_names": [
+                "Period 1",
+                "Period 2",
+                "Period 3",
+                "Period 4",
+                "Period 5",
+                "Period 6",
+                "Period 7",
+                "Period 8",
+                "Period 9",
+                "Period 10",
+                "Period 11",
+                "Period 12"
+            ],
+            "planned_amount_per_period": [
+                "1000",
+                "1500",
+                "2000",
+                "2500",
+                "3000",
+                "3500",
+                "4000",
+                "4500",
+                "5000",
+                "5500",
+                "6000",
+                "6500"
+            ],
+            "summary": "45000"
+        },
+        {
+            "owner": null,
+            "name": "Item 2",
+            "account_number": "DEF 234.5",
+            "period_names": [
+                "Period 1",
+                "Period 2",
+                "Period 3",
+                "Period 4",
+                "Period 5",
+                "Period 6",
+                "Period 7",
+                "Period 8",
+                "Period 9",
+                "Period 10",
+                "Period 11",
+                "Period 12"
+            ],
+            "planned_amount_per_period": [
+                "2000",
+                "200",
+                "300",
+                "10",
+                "0",
+                "14000",
+                "2300",
+                "2300",
+                "2300",
+                "2300",
+                "2300",
+                "2300"
+            ],
+            "summary": "30310"
+        },
+        {
+            "owner": "Owner B",
+            "name": "Item 3",
+            "account_number": "XYZ 999.9",
+            "period_names": [
+                "Period 1",
+                "Period 2",
+                "Period 3",
+                "Period 4",
+                "Period 5",
+                "Period 6",
+                "Period 7",
+                "Period 8",
+                "Period 9",
+                "Period 10",
+                "Period 11",
+                "Period 12"
+            ],
+            "planned_amount_per_period": [
+                "10000",
+                "1000",
+                "3000",
+                "10000",
+                "1000",
+                "3000",
+                "10000",
+                "1000",
+                "3000",
+                "10000",
+                "1000",
+                "3000"
+            ],
+            "summary": "56000"
+        }
+    ]
+}
