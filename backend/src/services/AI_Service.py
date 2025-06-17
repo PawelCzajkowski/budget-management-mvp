@@ -1,7 +1,8 @@
 from langchain.chat_models import init_chat_model
 from langchain_core.prompts import ChatPromptTemplate
+from typing import cast
 
-from models.BudgetDTO import ComplexBudgetDTO
+from models.BudgetDTO import BudgetListDTO
 
 prompt_template = ChatPromptTemplate.from_messages(
     [
@@ -10,7 +11,10 @@ prompt_template = ChatPromptTemplate.from_messages(
             "You are an expert extraction algorithm. "
             "Only extract relevant information from the csv file data. "
             "If you do not know the value of an attribute asked to extract, "
-            "return null for the attribute's value.",
+            "return null for the attribute's value."
+            "File can contain multiple budgets and periods. Not all data may be relevant."
+            "Don't return any additional information, just the extracted data in the format specified below."
+            "Do not do any calculations, just extract the data as it is.",
         ),
         ("human", "{text}"),
     ]
@@ -18,13 +22,24 @@ prompt_template = ChatPromptTemplate.from_messages(
 
 llm = init_chat_model("gemini-2.5-flash-preview-05-20", model_provider="google_genai")
 
-structured_response = llm.with_structured_output(schema=ComplexBudgetDTO)
+structured_response = llm.with_structured_output(schema=BudgetListDTO)
 
-def extract_budget_from_csv(file_path: str):
+def extract_budget_from_text(text: str) -> BudgetListDTO:
+    """
+    Extract budget information from a text and return it as a Budget object.
+    
+    :param text: Text containing budget data.
+    :return: A Budget object populated with the extracted data.
+    """
+    prompt = prompt_template.invoke({"text": text})
+    response = structured_response.invoke(prompt)
+    budget_list = cast(BudgetListDTO, response)
+
+    return budget_list
+
+def extract_budget_from_csv(file_path: str) -> BudgetListDTO:
     """
     Extract budget information from a CSV file and return it as a Budget object.
-    File can contain multiple budgets and periods.
-    Some data may be missing and some are not relevant.
     
     :param file_path: Path to the CSV file containing budget data.
     :return: A Budget object populated with the extracted data.
@@ -34,7 +49,23 @@ def extract_budget_from_csv(file_path: str):
         csv_reader = csv.reader(file)
         text = "\n".join([",".join(row) for row in csv_reader])
     
-    prompt = prompt_template.invoke({"text": text})
-    response = structured_response.invoke(prompt)
+    return extract_budget_from_text(text)
 
-    return response
+def extract_budget_from_bytes(csv_bytes: bytes) -> BudgetListDTO:
+    """
+    Extract budget information from CSV bytes data and return it as a Budget object.
+    File can contain multiple budgets and periods.
+    Some data may be missing and some are not relevant.
+    
+    :param csv_bytes: CSV data as bytes
+    :return: A Budget object populated with the extracted data.
+    """
+    import io
+    import csv
+    
+    # Convert bytes to text stream
+    text_stream = io.TextIOWrapper(io.BytesIO(csv_bytes), encoding='utf-8')
+    csv_reader = csv.reader(text_stream)
+    text = "\n".join([",".join(row) for row in csv_reader])
+
+    return extract_budget_from_text(text)
