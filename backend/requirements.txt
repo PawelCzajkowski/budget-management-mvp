@@ -42,3 +42,9 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dateutil==2.8.2
 uuid==1.30
+python-dotenv
+
+# AWS SDK
+# Note: boto3-stubs is optional and can be used for type checking with boto3
+boto3
+boto3-stubs[dynamodb]

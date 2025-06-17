@@ -2,7 +2,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.prompts import ChatPromptTemplate
 from typing import cast
 
-from models.BudgetDTO import BudgetListDTO
+from models.BudgetDTO import BudgetDTO
 
 prompt_template = ChatPromptTemplate.from_messages(
     [
@@ -22,9 +22,9 @@ prompt_template = ChatPromptTemplate.from_messages(
 
 llm = init_chat_model("gemini-2.5-flash-preview-05-20", model_provider="google_genai")
 
-structured_response = llm.with_structured_output(schema=BudgetListDTO)
+structured_response = llm.with_structured_output(schema=BudgetDTO)
 
-def extract_budget_from_text(text: str) -> BudgetListDTO:
+def extract_budget_from_text(text: str) -> BudgetDTO:
     """
     Extract budget information from a text and return it as a Budget object.
     
@@ -33,11 +33,11 @@ def extract_budget_from_text(text: str) -> BudgetListDTO:
     """
     prompt = prompt_template.invoke({"text": text})
     response = structured_response.invoke(prompt)
-    budget_list = cast(BudgetListDTO, response)
+    budget = cast(BudgetDTO, response)
 
-    return budget_list
+    return budget
 
-def extract_budget_from_csv(file_path: str) -> BudgetListDTO:
+def extract_budget_from_csv(file_path: str) -> BudgetDTO:
     """
     Extract budget information from a CSV file and return it as a Budget object.
     
@@ -51,7 +51,7 @@ def extract_budget_from_csv(file_path: str) -> BudgetListDTO:
     
     return extract_budget_from_text(text)
 
-def extract_budget_from_bytes(csv_bytes: bytes) -> BudgetListDTO:
+def extract_budget_from_bytes(csv_bytes: bytes) -> BudgetDTO:
     """
     Extract budget information from CSV bytes data and return it as a Budget object.
     File can contain multiple budgets and periods.

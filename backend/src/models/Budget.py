@@ -23,6 +23,8 @@ class Expense(TypedDict):
     amount: Annotated[Decimal, "Planned amounts for each period"]
     period_id: Annotated[str, "ID of the period this item belongs to"]
     budget_id: Annotated[str, "ID of the budget this item belongs to"]
+    created_at: Annotated[str, "Creation date of the expense item in ISO format"]
+    updated_at: Annotated[str, "Last update date of the expense item in ISO format"]
 
 
 class Period(TypedDict):
@@ -33,7 +35,10 @@ class Period(TypedDict):
     label: Annotated[str, "Name of the period"]
     # start_date: Annotated[str, "Start date of the period in ISO format"]
     # end_date: Annotated[str, "End date of the period in ISO format"]
+    planned_amount: Annotated[Decimal, "Planned amount for the period"]
     expense_list: Annotated[list[Expense], "Items planned for this period"]
+    created_at: Annotated[str, "Creation date of the period in ISO format"]
+    updated_at: Annotated[str, "Last update date of the period in ISO format"]
 
 class BudgetItem(TypedDict):
     id: Annotated[str, "Unique identifier for the budget item"]
@@ -44,6 +49,8 @@ class BudgetItem(TypedDict):
     # period_type: Annotated[PeriodType, "Type of the budget period (e.g., WEEK, MONTH, QUARTER, YEAR)"]
     periods: Annotated[list[Period], "Periods associated with the budget item"]
     summary: Annotated[Decimal, "Summary amount for the budget item"]
+    created_at: Annotated[str, "Creation date of the budget item in ISO format"]
+    updated_at: Annotated[str, "Last update date of the budget item in ISO format"]
 
 class Budget(TypedDict):
     id: Annotated[str, "Unique identifier for the budget"]

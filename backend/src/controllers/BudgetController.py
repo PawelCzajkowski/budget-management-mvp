@@ -1,11 +1,23 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
-from typing import List, cast
+from datetime import datetime, timezone
 import json
 import os
-from models.BudgetDTO import BudgetDTO, ComplexBudgetDTO, BudgetListDTO
+import uuid
+import logging
+
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from typing import List, cast
+from decimal import Decimal
+
+from models.BudgetDTO import BudgetDTO, ComplexBudgetDTO
 from services.AI_Service import extract_budget_from_bytes, extract_budget_from_csv
+from services.BudgetService import create_budget as create_budget_service
+from models.Budget import Budget, BudgetItem, Period
 
 router = APIRouter()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load mock data
 MOCK_DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'tests', 'mock-import-csv-response.json')
@@ -14,55 +26,115 @@ def get_mock_budget_data():
     with open(MOCK_DATA_PATH, 'r') as f:
         return json.load(f)
 
-@router.get("/", response_model=List[BudgetDTO])
-async def get_budgets():
+def mock_credentials():
+    return {"user_id": "mock_user_id", "token": "mock_token"}
+
+
+def generate_id() -> str:
+    return str(uuid.uuid4())
+
+
+@router.get("/", response_model=List[ComplexBudgetDTO])
+async def get_budgets(credentials: dict = Depends(mock_credentials)):
     """
     Get all budgets
     """
     try:
+        logger.info("Fetching all budgets")
         # Placeholder - replace with actual service call
         budgets = []
+        logger.info(f"Fetched {len(budgets)} budgets")
         return budgets
     except Exception as e:
+        logger.error(f"Error fetching budgets: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/", response_model=BudgetDTO)
-async def create_budget(budget: BudgetDTO):
+@router.post("/", response_model=ComplexBudgetDTO, status_code=201)
+async def create_budget(budget_dto: ComplexBudgetDTO, credentials: dict = Depends(mock_credentials)):
     """
     Create a new budget
     """
     try:
-        # Placeholder - replace with actual service call
-        return budget
+        logger.info("Creating a new budget")
+        budget_id = generate_id()
+        budget_item_id = generate_id()
+        period_id = generate_id()
+
+        utc_now = datetime.now(timezone.utc).isoformat()
+
+        # Parse ComplexBudgetDTO into Budget object
+        budget = Budget(
+            id=budget_id,
+            name= "IMPLEMENT IN THE FUTURE",  # TODO Ensure name is not None
+            created_at=utc_now,
+            updated_at=utc_now,
+            user_id=credentials["user_id"],  # TODO Replace with actual user ID logic
+            list_of_budget_items=[
+                BudgetItem(
+                    id=budget_item_id,
+                    created_at=utc_now,
+                    updated_at=utc_now,
+                    owner_id=item.owner or "",  # Replace with actual owner ID logic
+                    label=item.name or "",  # Ensure label is not None
+                    account_number=item.account_number or "",  # Ensure account_number is not None
+                    category="category_placeholder",  # TODO Replace with actual category logic
+                    periods=[
+                        Period(
+                            id=period_id,
+                            label=name,
+                            created_at=utc_now,
+                            updated_at=utc_now,
+                            planned_amount=Decimal(amount),
+                            budget_id=budget_id,
+                            budget_item_id=budget_item_id,
+                            expense_list=[]  # Placeholder for expenses, replace with actual logic
+                        ) for name, amount in zip(item.period_names or [], item.planned_amount_per_period or [])
+                    ],
+                    summary=item.summary or Decimal("0")  # Ensure summary is not None
+                ) for item in budget_dto.list_of_budgets
+            ],
+            period_names=budget_dto.period_names
+        )
+
+        logger.info(f"Budget created with ID: {budget_id}")
+        return create_budget_service(budget, credentials["user_id"])
     except Exception as e:
+        logger.error(f"Error creating budget: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/import-csv")
-async def import_csv(file: UploadFile = File(...)):
+async def import_csv(file: UploadFile = File(...), credentials: dict = Depends(mock_credentials)):
     """
     Import budget from CSV file
     """
     try:
+        logger.info("Importing budget from CSV file")
         contents = await file.read()
         # budget_list = extract_budget_from_bytes(csv_bytes=contents)
-        budget_list_dict = cast(BudgetListDTO, get_mock_budget_data())
-        budget_list = BudgetListDTO.model_validate(budget_list_dict)
+        budget_dict = cast(BudgetDTO, get_mock_budget_data())
+        budget = BudgetDTO.model_validate(budget_dict)
 
-        complex_budget = ComplexBudgetDTO.parse_from_budget_list(input=budget_list)
+        complex_budget = ComplexBudgetDTO.parse_from_budget_list(input=budget)
+        logger.info("Budget imported successfully")
         return complex_budget
     except Exception as e:
+        logger.error(f"Error importing budget from CSV: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{budget_id}", response_model=BudgetDTO)
-async def get_budget(budget_id: str):
+@router.get("/{budget_id}", response_model=ComplexBudgetDTO)
+async def get_budget(budget_id: str, credentials: dict = Depends(mock_credentials)):
     """
     Get a specific budget by ID
     """
     try:
+        logger.info(f"Fetching budget with ID: {budget_id}")
         # Placeholder - replace with actual service call
         budget = {}
         if not budget:
+            logger.warning(f"Budget with ID {budget_id} not found")
             raise HTTPException(status_code=404, detail="Budget not found")
+        logger.info(f"Budget with ID {budget_id} fetched successfully")
         return budget
     except Exception as e:
+        logger.error(f"Error fetching budget with ID {budget_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
