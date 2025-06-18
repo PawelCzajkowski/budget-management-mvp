@@ -1,12 +1,10 @@
-from typing import Optional, List, cast
+from typing import Optional, cast
 import boto3
 import os
 from dotenv import load_dotenv
-from models.Budget import Budget, BudgetItem, Period, Expense
+from models.Budget import Budget
 from decimal import Decimal
-import json
 import logging
-from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
 # Load environment variables
@@ -42,74 +40,7 @@ class BudgetRepository:
         )
         
         # Ensure table exists
-        self._ensure_table_exists()
         self.table = self.dynamodb.Table(self.table_name)
-
-    def _ensure_table_exists(self):
-        """
-        Check if the table exists, if not create it
-        """
-        try:
-            logger.info(f"Checking if table {self.table_name} exists...")
-            self.dynamodb_client.describe_table(TableName=self.table_name)
-            logger.info(f"Table {self.table_name} exists")
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ResourceNotFoundException':
-                logger.info(f"Table {self.table_name} does not exist. Creating...")
-                try:
-                    # Create the DynamoDB table
-                    self.dynamodb_client.create_table(
-                        TableName=self.table_name,
-                        AttributeDefinitions=[
-                            {
-                                'AttributeName': 'id',
-                                'AttributeType': 'S'
-                            },
-                            {
-                                'AttributeName': 'user_id',
-                                'AttributeType': 'S'
-                            }
-                        ],
-                        KeySchema=[
-                            {
-                                'AttributeName': 'id',
-                                'KeyType': 'HASH'
-                            }
-                        ],
-                        ProvisionedThroughput={
-                            'ReadCapacityUnits': 5,
-                            'WriteCapacityUnits': 5
-                        },
-                        GlobalSecondaryIndexes=[
-                            {
-                                'IndexName': 'user_id-index',
-                                'KeySchema': [
-                                    {
-                                        'AttributeName': 'user_id',
-                                        'KeyType': 'HASH'
-                                    }
-                                ],
-                                'Projection': {
-                                    'ProjectionType': 'ALL'
-                                },
-                                'ProvisionedThroughput': {
-                                    'ReadCapacityUnits': 5,
-                                    'WriteCapacityUnits': 5
-                                }
-                            }
-                        ]
-                    )
-                    # Wait until the table exists
-                    logger.info("Waiting for table to be created...")
-                    waiter = self.dynamodb_client.get_waiter('table_exists')
-                    waiter.wait(TableName=self.table_name)
-                    logger.info(f"Table {self.table_name} created successfully")
-                except Exception as create_error:
-                    logger.error(f"Failed to create table: {str(create_error)}")
-                    raise
-            else:
-                logger.error(f"Error checking table existence: {str(e)}")
-                raise
 
     def _serialize_budget(self, budget: Budget) -> dict:
         """
@@ -182,7 +113,7 @@ class BudgetRepository:
         except Exception as e:
             raise Exception(f"Failed to put budget into DynamoDB: {str(e)}")
 
-    def get_budget(self, budget_id: str, user_id: str) -> Optional[Budget]:
+    def get_budget(self, budget_id: str) -> Optional[Budget]:
         """
         Retrieve a budget from DynamoDB by its ID
         """

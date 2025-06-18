@@ -41,7 +41,7 @@ def get_budget(budget_id: str, user_id: str) -> Budget:
     Retrieve a budget by its ID.
     Returns the Budget object.
     """
-    budget = budget_repository.get_budget(budget_id, user_id)
+    budget = budget_repository.get_budget(budget_id)
     if not budget:
         raise ValueError(f"Budget with ID {budget_id} not found")
     if budget['user_id'] != user_id:

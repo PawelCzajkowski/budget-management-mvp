@@ -5,7 +5,7 @@ import uuid
 import logging
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from typing import List, cast
+from typing import cast
 from decimal import Decimal
 
 from models.BudgetDTO import BudgetDTO, ComplexBudgetDTO
@@ -91,9 +91,9 @@ async def create_budget(budget_dto: ComplexBudgetDTO, credentials: dict = Depend
                     id=budget_item_id,
                     created_at=utc_now,
                     updated_at=utc_now,
-                    owner_id=item.owner or "",  # Replace with actual owner ID logic
-                    label=item.name or "",  # Ensure label is not None
-                    account_number=item.account_number or "",  # Ensure account_number is not None
+                    owner_id=item.owner or "",
+                    label=item.name or "",
+                    account_number=item.account_number or "",
                     category="category_placeholder",  # TODO Replace with actual category logic
                     periods=[
                         Period(
