@@ -30,7 +30,7 @@ def create_budget(budget: Budget, user_id: str) -> ComplexBudgetDTO:
 
     complex_budget = ComplexBudgetDTO(
         id=budget['id'],
-        list_of_budgets=budget_items,
+        list_of_budget_items=budget_items,
         period_names=budget['period_names']
     )
 
@@ -48,6 +48,15 @@ def get_budget(budget_id: str, user_id: str) -> Budget:
         raise AuthorizationError(f"Budget with ID {budget_id} does not belong to user {user_id}")
 
     return budget
+
+def get_all_budget_ids(user_id: str) -> list[str]:
+    """
+    Retrieve all budget IDs for a user.
+    Returns a list of budget IDs.
+    """
+    ids = budget_repository.get_budgets_id_by_user(user_id)
+    return ids
+
 
 # def get_budgets(user_id: str) -> list[Budget]:
 #     """

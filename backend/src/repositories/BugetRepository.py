@@ -7,6 +7,7 @@ from decimal import Decimal
 import json
 import logging
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key
 
 # Load environment variables
 load_dotenv()
@@ -63,6 +64,10 @@ class BudgetRepository:
                             {
                                 'AttributeName': 'id',
                                 'AttributeType': 'S'
+                            },
+                            {
+                                'AttributeName': 'user_id',
+                                'AttributeType': 'S'
                             }
                         ],
                         KeySchema=[
@@ -74,7 +79,25 @@ class BudgetRepository:
                         ProvisionedThroughput={
                             'ReadCapacityUnits': 5,
                             'WriteCapacityUnits': 5
-                        }
+                        },
+                        GlobalSecondaryIndexes=[
+                            {
+                                'IndexName': 'user_id-index',
+                                'KeySchema': [
+                                    {
+                                        'AttributeName': 'user_id',
+                                        'KeyType': 'HASH'
+                                    }
+                                ],
+                                'Projection': {
+                                    'ProjectionType': 'ALL'
+                                },
+                                'ProvisionedThroughput': {
+                                    'ReadCapacityUnits': 5,
+                                    'WriteCapacityUnits': 5
+                                }
+                            }
+                        ]
                     )
                     # Wait until the table exists
                     logger.info("Waiting for table to be created...")
@@ -231,9 +254,13 @@ class BudgetRepository:
         Retrieve all budget IDs for a specific user
         """
         try:
-            budgets = self.get_budgets_by_user(user_id)
-            budget_ids = [budget['id'] for budget in budgets]
-            return budget_ids
+            response = self.table.query(
+                IndexName="user_id-index",
+                KeyConditionExpression=Key("user_id").eq(user_id),
+                ProjectionExpression="id"
+            )
+            ids = [str(item["id"]) for item in response.get("Items", [])]
+            return ids
         except Exception as e:
             logger.exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")
             raise Exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")
