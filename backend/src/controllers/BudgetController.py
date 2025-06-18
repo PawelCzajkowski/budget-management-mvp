@@ -10,8 +10,9 @@ from decimal import Decimal
 
 from models.BudgetDTO import BudgetDTO, ComplexBudgetDTO
 from services.AI_Service import extract_budget_from_bytes, extract_budget_from_csv
-from services.BudgetService import create_budget as create_budget_service
+from services.BudgetService import create_budget as create_budget_service, get_budget as get_budget_service
 from models.Budget import Budget, BudgetItem, Period
+from exceptions.AuthorizationError import AuthorizationError
 
 router = APIRouter()
 
@@ -42,6 +43,7 @@ async def get_budgets(credentials: dict = Depends(mock_credentials)):
     try:
         logger.info("Fetching all budgets")
         # Placeholder - replace with actual service call
+
         budgets = []
         logger.info(f"Fetched {len(budgets)} budgets")
         return budgets
@@ -114,7 +116,7 @@ async def import_csv(file: UploadFile = File(...), credentials: dict = Depends(m
         budget_dict = cast(BudgetDTO, get_mock_budget_data())
         budget = BudgetDTO.model_validate(budget_dict)
 
-        complex_budget = ComplexBudgetDTO.parse_from_budget_list(input=budget)
+        complex_budget = ComplexBudgetDTO.parse_from_BudgetDTO(input=budget)
         logger.info("Budget imported successfully")
         return complex_budget
     except Exception as e:
@@ -128,13 +130,15 @@ async def get_budget(budget_id: str, credentials: dict = Depends(mock_credential
     """
     try:
         logger.info(f"Fetching budget with ID: {budget_id}")
-        # Placeholder - replace with actual service call
-        budget = {}
-        if not budget:
-            logger.warning(f"Budget with ID {budget_id} not found")
-            raise HTTPException(status_code=404, detail="Budget not found")
+        budget = get_budget_service(budget_id, credentials["user_id"])
         logger.info(f"Budget with ID {budget_id} fetched successfully")
-        return budget
+        return ComplexBudgetDTO.parse_from_Budget(budget)
+    except ValueError as e:
+        logger.warning(f"Budget with ID {budget_id} not found")
+        raise HTTPException(status_code=404, detail=str(e))
+    except AuthorizationError as e:
+        logger.warning(f"Authorization error: {str(e)}")
+        raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         logger.error(f"Error fetching budget with ID {budget_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -159,7 +159,7 @@ class BudgetRepository:
         except Exception as e:
             raise Exception(f"Failed to put budget into DynamoDB: {str(e)}")
 
-    def get_budget(self, budget_id: str) -> Optional[Budget]:
+    def get_budget(self, budget_id: str, user_id: str) -> Optional[Budget]:
         """
         Retrieve a budget from DynamoDB by its ID
         """
@@ -193,7 +193,7 @@ class BudgetRepository:
             logger.exception(f"Failed to get budget from DynamoDB: {str(e)}")
             raise Exception(f"Failed to get budget from DynamoDB: {str(e)}")
 
-    def get_budgets_by_user(self, user_id: str) -> List[Budget]:
+    def get_budgets_by_user(self, user_id: str) -> list[Budget]:
         """
         Retrieve all budgets for a specific user
         """
@@ -221,7 +221,19 @@ class BudgetRepository:
                         for expense in period['expense_list']:
                             expense['amount'] = Decimal(expense['amount'])
 
-            return cast(List[Budget], items)
+            return cast(list[Budget], items)
         except Exception as e:
             logger.exception(f"Failed to get budgets from DynamoDB: {str(e)}")
             raise Exception(f"Failed to get budgets from DynamoDB: {str(e)}")
+
+    def get_budgets_id_by_user(self, user_id: str) -> list[str]:
+        """
+        Retrieve all budget IDs for a specific user
+        """
+        try:
+            budgets = self.get_budgets_by_user(user_id)
+            budget_ids = [budget['id'] for budget in budgets]
+            return budget_ids
+        except Exception as e:
+            logger.exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")
+            raise Exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")

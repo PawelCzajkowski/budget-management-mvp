@@ -2,6 +2,7 @@ from models.Budget import Budget
 from repositories.BugetRepository import BudgetRepository
 from models.BudgetDTO import ComplexBudgetDTO, BudgetItemDTO
 from decimal import Decimal
+from exceptions.AuthorizationError import AuthorizationError
 
 budget_repository = BudgetRepository()
 
@@ -28,8 +29,53 @@ def create_budget(budget: Budget, user_id: str) -> ComplexBudgetDTO:
     ]
 
     complex_budget = ComplexBudgetDTO(
+        id=budget['id'],
         list_of_budgets=budget_items,
         period_names=budget['period_names']
     )
 
     return complex_budget
+
+def get_budget(budget_id: str, user_id: str) -> Budget:
+    """
+    Retrieve a budget by its ID.
+    Returns the Budget object.
+    """
+    budget = budget_repository.get_budget(budget_id, user_id)
+    if not budget:
+        raise ValueError(f"Budget with ID {budget_id} not found")
+    if budget['user_id'] != user_id:
+        raise AuthorizationError(f"Budget with ID {budget_id} does not belong to user {user_id}")
+
+    return budget
+
+# def get_budgets(user_id: str) -> list[Budget]:
+#     """
+#     Retrieve all budgets for a user.
+#     Returns a list of Budgets.
+#     """
+#     budgets = budget_repository.get_budgets_by_user(user_id)
+
+#     all_budgets = []
+#     for budget in budgets:
+#         budget_items = [
+#             BudgetItemDTO(
+#                 name=item['label'],
+#                 owner=item['owner_id'],
+#                 account_number=item['account_number'],
+#                 planned_amount_per_period=[
+#                     period['planned_amount'] 
+#                     for period in item['periods']
+#                 ],
+#                 summary=item['summary'],
+#                 period_names=[period['label'] for period in item['periods']]
+#             ) for item in budget['list_of_budget_items']
+#         ]
+
+#         complex_budget = ComplexBudgetDTO(
+#             list_of_budgets=budget_items,
+#             period_names=budget['period_names']
+#         )
+#         all_budgets.append(complex_budget)
+
+#     return all_budgets
