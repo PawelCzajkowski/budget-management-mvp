@@ -1,22 +1,24 @@
 import { useState } from 'react'
 import './App.css'
 import FileUpload from './components/FileUpload'
-import DataTable from './components/DataTable'
-import type { Budget, BudgetDTO } from './types/Budget'
-import { budgetApi } from './api/routes'
+// import DataTable from './components/DataTable'
+import type { Budget, ComplexBudgetDTO } from './types/Budget'
+// import { budgetApi } from './api/routes'
 import type { ApiError } from './api/routes'
-import { mapBudgetDTOtoBudgetData } from './utils/dtoMappers'
+import { mapRequestToBudget } from './utils/dtoMappers'
+import BudgetGrid from './components/BudgetGrid'
+import DataTable from './components/DataTable'
 
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const handleDataReceived = async (data: BudgetDTO) => {
+  const handleDataReceived = async (data: ComplexBudgetDTO) => {
     try {
       // Here we would normally make an API call to create/import the budget
       // For now, we'll assume the data is already in the correct format
       
-      setBudget(mapBudgetDTOtoBudgetData(data))
+      setBudget(mapRequestToBudget(data))
       setError(null)
     } catch (err) {
       const apiError = err as ApiError

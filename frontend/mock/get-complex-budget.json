@@ -1,120 +1,307 @@
 {
-    "period_names": [
-        "Period 1",
-        "Period 2",
-        "Period 3",
-        "Period 4",
-        "Period 5",
-        "Period 6",
-        "Period 7",
-        "Period 8",
-        "Period 9",
-        "Period 10",
-        "Period 11",
-        "Period 12"
-    ],
-    "list_of_budgets": [
-        {
-            "owner": "Owner A",
-            "name": "Item 1",
-            "account_number": "ABC 123.4",
-            "period_names": [
-                "Period 1",
-                "Period 2",
-                "Period 3",
-                "Period 4",
-                "Period 5",
-                "Period 6",
-                "Period 7",
-                "Period 8",
-                "Period 9",
-                "Period 10",
-                "Period 11",
-                "Period 12"
-            ],
-            "planned_amount_per_period": [
-                "1000",
-                "1500",
-                "2000",
-                "2500",
-                "3000",
-                "3500",
-                "4000",
-                "4500",
-                "5000",
-                "5500",
-                "6000",
-                "6500"
-            ],
-            "summary": "45000"
-        },
-        {
-            "owner": null,
-            "name": "Item 2",
-            "account_number": "DEF 234.5",
-            "period_names": [
-                "Period 1",
-                "Period 2",
-                "Period 3",
-                "Period 4",
-                "Period 5",
-                "Period 6",
-                "Period 7",
-                "Period 8",
-                "Period 9",
-                "Period 10",
-                "Period 11",
-                "Period 12"
-            ],
-            "planned_amount_per_period": [
-                "2000",
-                "200",
-                "300",
-                "10",
-                "0",
-                "14000",
-                "2300",
-                "2300",
-                "2300",
-                "2300",
-                "2300",
-                "2300"
-            ],
-            "summary": "30310"
-        },
-        {
-            "owner": "Owner B",
-            "name": "Item 3",
-            "account_number": "XYZ 999.9",
-            "period_names": [
-                "Period 1",
-                "Period 2",
-                "Period 3",
-                "Period 4",
-                "Period 5",
-                "Period 6",
-                "Period 7",
-                "Period 8",
-                "Period 9",
-                "Period 10",
-                "Period 11",
-                "Period 12"
-            ],
-            "planned_amount_per_period": [
-                "10000",
-                "1000",
-                "3000",
-                "10000",
-                "1000",
-                "3000",
-                "10000",
-                "1000",
-                "3000",
-                "10000",
-                "1000",
-                "3000"
-            ],
-            "summary": "56000"
-        }
+  "id": "de6d2c27-fae3-47dd-9222-544a89ebb5f0",
+  "period_names": [
+    "Period 1",
+    "Period 2",
+    "Period 3",
+    "Period 4",
+    "Period 5",
+    "Period 6",
+    "Period 7",
+    "Period 8",
+    "Period 9",
+    "Period 10",
+    "Period 11",
+    "Period 12"
+  ],
+  "budget": {
+    "title": "Kolejny budżet",
+    "description": "Teraz ma wydatki. Zmieniony owner",
+    "list_of_budget_items": [
+      {
+        "owner": "Marysia",
+        "name": "Item 1",
+        "account_number": "ABC 123.4",
+        "periods": [
+          {
+            "planned_amount": "1000",
+            "name": "Period 1",
+            "expenses": [
+              {
+                "name": "",
+                "owner": null,
+                "account_number": "",
+                "amount": "150"
+              },
+              {
+                "name": "",
+                "owner": null,
+                "account_number": "",
+                "amount": "200"
+              },
+              {
+                "name": "",
+                "owner": null,
+                "account_number": "",
+                "amount": "243"
+              },
+              {
+                "name": "",
+                "owner": null,
+                "account_number": "",
+                "amount": "164"
+              }
+            ]
+          },
+          {
+            "planned_amount": "1500",
+            "name": "Period 2",
+            "expenses": [
+              {
+                "name": "",
+                "owner": null,
+                "account_number": "",
+                "amount": "178"
+              },
+              {
+                "name": "",
+                "owner": null,
+                "account_number": "",
+                "amount": "204"
+              }
+            ]
+          },
+          {
+            "planned_amount": "2000",
+            "name": "Period 3",
+            "expenses": []
+          },
+          {
+            "planned_amount": "2500",
+            "name": "Period 4",
+            "expenses": []
+          },
+          {
+            "planned_amount": "3000",
+            "name": "Period 5",
+            "expenses": []
+          },
+          {
+            "planned_amount": "3500",
+            "name": "Period 6",
+            "expenses": []
+          },
+          {
+            "planned_amount": "4000",
+            "name": "Period 7",
+            "expenses": []
+          },
+          {
+            "planned_amount": "4500",
+            "name": "Period 8",
+            "expenses": []
+          },
+          {
+            "planned_amount": "5000",
+            "name": "Period 9",
+            "expenses": []
+          },
+          {
+            "planned_amount": "5500",
+            "name": "Period 10",
+            "expenses": []
+          },
+          {
+            "planned_amount": "6000",
+            "name": "Period 11",
+            "expenses": []
+          },
+          {
+            "planned_amount": "6500",
+            "name": "Period 12",
+            "expenses": []
+          }
+        ],
+        "period_names": [
+          "Period 1",
+          "Period 2",
+          "Period 3",
+          "Period 4",
+          "Period 5",
+          "Period 6",
+          "Period 7",
+          "Period 8",
+          "Period 9",
+          "Period 10",
+          "Period 11",
+          "Period 12"
+        ],
+        "summary": "45000"
+      },
+      {
+        "owner": "Krysia",
+        "name": "Item 2",
+        "account_number": "DEF 234.5",
+        "periods": [
+          {
+            "planned_amount": "2000",
+            "name": "Period 1",
+            "expenses": []
+          },
+          {
+            "planned_amount": "200",
+            "name": "Period 2",
+            "expenses": []
+          },
+          {
+            "planned_amount": "300",
+            "name": "Period 3",
+            "expenses": []
+          },
+          {
+            "planned_amount": "10",
+            "name": "Period 4",
+            "expenses": []
+          },
+          {
+            "planned_amount": "0",
+            "name": "Period 5",
+            "expenses": []
+          },
+          {
+            "planned_amount": "14000",
+            "name": "Period 6",
+            "expenses": []
+          },
+          {
+            "planned_amount": "2300",
+            "name": "Period 7",
+            "expenses": []
+          },
+          {
+            "planned_amount": "2300",
+            "name": "Period 8",
+            "expenses": []
+          },
+          {
+            "planned_amount": "2300",
+            "name": "Period 9",
+            "expenses": []
+          },
+          {
+            "planned_amount": "2300",
+            "name": "Period 10",
+            "expenses": []
+          },
+          {
+            "planned_amount": "2300",
+            "name": "Period 11",
+            "expenses": []
+          },
+          {
+            "planned_amount": "2300",
+            "name": "Period 12",
+            "expenses": []
+          }
+        ],
+        "period_names": [
+          "Period 1",
+          "Period 2",
+          "Period 3",
+          "Period 4",
+          "Period 5",
+          "Period 6",
+          "Period 7",
+          "Period 8",
+          "Period 9",
+          "Period 10",
+          "Period 11",
+          "Period 12"
+        ],
+        "summary": "30310"
+      },
+      {
+        "owner": "Owner B",
+        "name": "Item 3",
+        "account_number": "XYZ 999.9",
+        "periods": [
+          {
+            "planned_amount": "10000",
+            "name": "Period 1",
+            "expenses": []
+          },
+          {
+            "planned_amount": "1000",
+            "name": "Period 2",
+            "expenses": []
+          },
+          {
+            "planned_amount": "3000",
+            "name": "Period 3",
+            "expenses": []
+          },
+          {
+            "planned_amount": "10000",
+            "name": "Period 4",
+            "expenses": []
+          },
+          {
+            "planned_amount": "1000",
+            "name": "Period 5",
+            "expenses": []
+          },
+          {
+            "planned_amount": "3000",
+            "name": "Period 6",
+            "expenses": []
+          },
+          {
+            "planned_amount": "10000",
+            "name": "Period 7",
+            "expenses": []
+          },
+          {
+            "planned_amount": "1000",
+            "name": "Period 8",
+            "expenses": []
+          },
+          {
+            "planned_amount": "3000",
+            "name": "Period 9",
+            "expenses": []
+          },
+          {
+            "planned_amount": "10000",
+            "name": "Period 10",
+            "expenses": []
+          },
+          {
+            "planned_amount": "1000",
+            "name": "Period 11",
+            "expenses": []
+          },
+          {
+            "planned_amount": "3000",
+            "name": "Period 12",
+            "expenses": []
+          }
+        ],
+        "period_names": [
+          "Period 1",
+          "Period 2",
+          "Period 3",
+          "Period 4",
+          "Period 5",
+          "Period 6",
+          "Period 7",
+          "Period 8",
+          "Period 9",
+          "Period 10",
+          "Period 11",
+          "Period 12"
+        ],
+        "summary": "56000"
+      }
     ]
+  }
 }

@@ -1,4 +1,14 @@
-import type { Budget, BudgetDTO, BudgetItem, BudgetItemDTO, Expense, ExpenseDTO, Period, PeriodDTO } from '../types/Budget';
+import type { Budget, BudgetDTO, BudgetItem, BudgetItemDTO, ComplexBudgetDTO, Expense, ExpenseDTO, Period, PeriodDTO } from '../types/Budget';
+
+export const mapRequestToBudget = (request: ComplexBudgetDTO): Budget => {
+  return {
+    id: request.id || '',
+    title: request.budget.title || '',
+    description: request.budget.description || '',
+    list_of_budget_items: request.budget.list_of_budget_items.map(item => mapBudgetItemDTOtoBudgetItem(item)),
+    period_names: request.period_names || []
+  };
+};
 
 export const mapBudgetDTOtoBudgetData = (dto: BudgetDTO): Budget => {
   return {

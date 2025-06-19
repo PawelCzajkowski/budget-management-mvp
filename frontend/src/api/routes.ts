@@ -69,6 +69,17 @@ export const budgetApi = {
     });
     return response.data;
   },
+
+  /**
+   * Delete a budget by ID
+   */
+  deleteBudget: async (budgetId: string): Promise<void> => {
+    await api.delete(`/budgets/${budgetId}`, {
+      headers: {
+        Authorization: `Bearer ${mockCredentials.token}`,
+      },
+    });
+  },
 };
 
 // Error handling types

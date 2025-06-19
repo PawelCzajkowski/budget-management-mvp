@@ -59,6 +59,12 @@ interface BudgetDTO {
   list_of_budget_items: BudgetItemDTO[];
 }
 
+interface ComplexBudgetDTO {
+  id?: string;
+  period_names: string[];
+  budget: BudgetDTO;
+}
+
 export type { 
   Expense,
   Period,
@@ -67,5 +73,6 @@ export type {
   ExpenseDTO,
   PeriodDTO,
   BudgetItemDTO,
-  BudgetDTO
+  BudgetDTO,
+  ComplexBudgetDTO
 };
