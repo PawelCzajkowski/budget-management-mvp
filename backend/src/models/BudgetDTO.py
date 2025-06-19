@@ -96,11 +96,11 @@ class ComplexBudgetDTO(BaseModel):
 
         # Adapt Budget (ORM) object to ComplexBudgetDTO structure
         return cls(
-            id=getattr(input, "id", None),
-            period_names=getattr(input, "period_names", []),
+            id=input.get("id", None),
+            period_names=input.get("period_names", []),
             budget=BudgetDTO(
-                title=getattr(input, "title", None),
-                description=getattr(input, "description", None),
+                title=input.get("title", None),
+                description=input.get("description", None),
                 list_of_budget_items=[
                     BudgetItemDTO(
                         owner=item["owner_id"],

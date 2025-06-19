@@ -54,7 +54,8 @@ class BudgetItem(TypedDict):
 
 class Budget(TypedDict):
     id: Annotated[str, "Unique identifier for the budget"]
-    name: Annotated[str, "Name of the budget"]
+    title: Annotated[str, "Title of the budget"]
+    description: Annotated[str, "Description of the budget"]
     created_at: Annotated[str, "Creation date of the budget in ISO format"]
     updated_at: Annotated[str, "Last update date of the budget in ISO format"]
     user_id: Annotated[str, "ID of the user who owns the budgets"]

@@ -51,7 +51,7 @@ def generate_id() -> str:
 #         logger.error(f"Error fetching budgets: {str(e)}")
 #         raise HTTPException(status_code=500, detail=str(e))
     
-@router.get("/", response_model=list[str])
+@router.get("/", response_model=list[dict])
 async def get_all_budget_ids(credentials: dict = Depends(mock_credentials)):
     """
     Get all budget IDs
@@ -67,7 +67,7 @@ async def get_all_budget_ids(credentials: dict = Depends(mock_credentials)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/", response_model=ComplexBudgetDTO, status_code=201)
-async def create_budget(budget_dto: ComplexBudgetDTO, credentials: dict = Depends(mock_credentials)):
+async def create_budget(request: ComplexBudgetDTO, credentials: dict = Depends(mock_credentials)):
     """
     Create a new budget
     """
@@ -82,7 +82,8 @@ async def create_budget(budget_dto: ComplexBudgetDTO, credentials: dict = Depend
         # Parse ComplexBudgetDTO into Budget object
         budget = Budget(
             id=budget_id,
-            name= "IMPLEMENT IN THE FUTURE",  # TODO Ensure name is not None
+            title=request.budget.title or "",
+            description=request.budget.description or "",
             created_at=utc_now,
             updated_at=utc_now,
             user_id=credentials["user_id"],  # TODO Replace with actual user ID logic
@@ -108,9 +109,9 @@ async def create_budget(budget_dto: ComplexBudgetDTO, credentials: dict = Depend
                         ) for name, period in zip(item.period_names or [], item.periods or [])
                     ],
                     summary=item.summary or Decimal("0")  # Ensure summary is not None
-                ) for item in budget_dto.budget.list_of_budget_items or []
+                ) for item in request.budget.list_of_budget_items or []
             ],
-            period_names=budget_dto.period_names
+            period_names=request.period_names
         )
 
         logger.info(f"Budget created with ID: {budget_id}")

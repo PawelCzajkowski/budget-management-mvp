@@ -14,27 +14,7 @@ def create_budget(budget: Budget, user_id: str) -> ComplexBudgetDTO:
 
     budget_repository.put_budget(budget)
 
-    budget_items = [
-        BudgetItemDTO(
-            name=item['label'],
-            owner=item['owner_id'],
-            account_number=item['account_number'],
-            planned_amount_per_period=[
-                period['planned_amount'] 
-                for period in item['periods']
-            ],
-            summary=item['summary'],
-            period_names=[period['label'] for period in item['periods']]
-        ) for item in budget['list_of_budget_items']
-    ]
-
-    complex_budget = ComplexBudgetDTO(
-        id=budget['id'],
-        list_of_budget_items=budget_items,
-        period_names=budget['period_names']
-    )
-
-    return complex_budget
+    return ComplexBudgetDTO.parse_from_Budget(budget)
 
 def get_budget(budget_id: str, user_id: str) -> Budget:
     """
@@ -49,10 +29,10 @@ def get_budget(budget_id: str, user_id: str) -> Budget:
 
     return budget
 
-def get_all_budget_ids(user_id: str) -> list[str]:
+def get_all_budget_ids(user_id: str) -> list[dict]:
     """
-    Retrieve all budget IDs for a user.
-    Returns a list of budget IDs.
+    Retrieve all budget IDs and titles for a user.
+    Returns a list of budget IDs and titles.
     """
     ids = budget_repository.get_budgets_id_by_user(user_id)
     return ids

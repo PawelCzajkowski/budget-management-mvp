@@ -6,6 +6,7 @@ from models.Budget import Budget
 from decimal import Decimal
 import logging
 from boto3.dynamodb.conditions import Key
+import botocore.exceptions
 
 # Load environment variables
 load_dotenv()
@@ -18,14 +19,15 @@ class BudgetRepository:
     def __init__(self):
         endpoint_url = os.getenv('DYNAMODB_ENDPOINT_URL', 'http://localhost:5555')
         self.table_name = os.getenv('DYNAMODB_TABLE_NAME', 'budgets')
-        
-        logger.info(f"Initializing DynamoDB with endpoint URL: {endpoint_url}")
+        REGION = os.getenv('AWS_REGION')
+
+        logger.info(f"Initializing DynamoDB with endpoint URL: {endpoint_url} on region {REGION}")
         logger.info(f"Using table name: {self.table_name}")
         
         # Initialize DynamoDB client and resource
         self.dynamodb_client = boto3.client(
             'dynamodb',
-            region_name=os.getenv('AWS_REGION'),
+            region_name=REGION,
             aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
             endpoint_url=endpoint_url
@@ -33,7 +35,7 @@ class BudgetRepository:
         
         self.dynamodb = boto3.resource(
             'dynamodb',
-            region_name=os.getenv('AWS_REGION'),
+            region_name=REGION,
             aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
             endpoint_url=endpoint_url
@@ -41,6 +43,21 @@ class BudgetRepository:
         
         # Ensure table exists
         self.table = self.dynamodb.Table(self.table_name)
+        
+        try:
+            self.table.load()
+            logger.info(f"Connected to DynamoDB table: {self.table_name}")
+        except botocore.exceptions.ClientError as e:
+            error_code = e.response.get('Error', {}).get('Code')
+            if error_code == 'ResourceNotFoundException':
+                logger.error(f"Table {self.table_name} does not exist. Please create the table before using the repository.")
+                raise Exception(f"Table {self.table_name} does not exist. Please create the table before using the repository.")
+            else:
+                logger.error(f"ClientError when loading table {self.table_name}: {e}")
+                raise
+        except Exception as e:
+            logger.error(f"Failed to connect to DynamoDB table {self.table_name}: {str(e)}")
+            raise Exception(f"Failed to connect to DynamoDB table {self.table_name}: {str(e)}")
 
     def _serialize_budget(self, budget: Budget) -> dict:
         """
@@ -54,7 +71,7 @@ class BudgetRepository:
         # Convert to dict and handle Decimal serialization
         budget_dict = {
             'id': budget['id'],
-            'name': budget['name'],
+            'title': budget['title'],
             'created_at': budget['created_at'],
             'updated_at': budget['updated_at'],
             'user_id': budget['user_id'],
@@ -180,7 +197,7 @@ class BudgetRepository:
             logger.exception(f"Failed to get budgets from DynamoDB: {str(e)}")
             raise Exception(f"Failed to get budgets from DynamoDB: {str(e)}")
 
-    def get_budgets_id_by_user(self, user_id: str) -> list[str]:
+    def get_budgets_id_by_user(self, user_id: str) -> list[dict]:
         """
         Retrieve all budget IDs for a specific user
         """
@@ -188,10 +205,9 @@ class BudgetRepository:
             response = self.table.query(
                 IndexName="user_id-index",
                 KeyConditionExpression=Key("user_id").eq(user_id),
-                ProjectionExpression="id"
+                ProjectionExpression="id, title"
             )
-            ids = [str(item["id"]) for item in response.get("Items", [])]
-            return ids
+            return [{"id": item["id"], "title": item.get("title", "")} for item in response.get("Items", [])]
         except Exception as e:
             logger.exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")
             raise Exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")
