@@ -177,3 +177,22 @@ async def update_budget(
     except Exception as e:
         logger.error(f"Error updating budget with ID {budget_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{budget_id}", status_code=204)
+async def delete_budget(budget_id: str, credentials: dict = Depends(mock_credentials)):
+    """
+    Delete a budget by ID
+    """
+    try:
+        logger.info(f"Deleting budget with ID: {budget_id}")
+        budget_service.delete_budget(budget_id, credentials["user_id"])
+        logger.info(f"Budget with ID {budget_id} deleted successfully")
+    except ValueError as e:
+        logger.warning(f"Budget with ID {budget_id} not found")
+        raise HTTPException(status_code=404, detail=str(e))
+    except AuthorizationError as e:
+        logger.warning(f"Authorization error: {str(e)}")
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error deleting budget with ID {budget_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

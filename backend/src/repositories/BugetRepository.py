@@ -214,3 +214,13 @@ class BudgetRepository:
         except Exception as e:
             logger.exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")
             raise Exception(f"Failed to get budget IDs from DynamoDB: {str(e)}")
+
+    def delete_budget(self, budget_id: str) -> None:
+        """
+        Delete a budget from DynamoDB by its ID
+        """
+        try:
+            self.table.delete_item(Key={'id': budget_id})
+        except Exception as e:
+            logger.exception(f"Failed to delete budget from DynamoDB: {str(e)}")
+            raise Exception(f"Failed to delete budget from DynamoDB: {str(e)}")

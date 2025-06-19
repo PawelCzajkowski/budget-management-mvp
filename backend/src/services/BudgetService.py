@@ -1,8 +1,10 @@
-from models.Budget import Budget
+from models.Budget import Budget, BudgetItem, Period, Expense
 from repositories.BugetRepository import BudgetRepository
 from models.BudgetDTO import ComplexBudgetDTO, BudgetItemDTO
 from decimal import Decimal
 from exceptions.AuthorizationError import AuthorizationError
+from datetime import datetime, timezone
+
 
 budget_repository = BudgetRepository()
 
@@ -74,9 +76,7 @@ def update_budget(budget_id: str, request: ComplexBudgetDTO, user_id: str) -> Co
     Update an existing budget.
     Returns the updated budget as ComplexBudgetDTO.
     """
-    from models.Budget import Budget, BudgetItem, Period, Expense
-    from decimal import Decimal
-    from datetime import datetime, timezone
+
 
     utc_now = datetime.now(timezone.utc).isoformat()
 
@@ -126,3 +126,13 @@ def update_budget(budget_id: str, request: ComplexBudgetDTO, user_id: str) -> Co
     )
     budget_repository.update_budget(budget)
     return ComplexBudgetDTO.parse_from_Budget(budget)
+
+def delete_budget(budget_id: str, user_id: str) -> None:
+    """
+    Delete a budget by its ID for a specific user.
+    """
+    budgets_list = budget_repository.get_budgets_id_by_user(user_id)
+
+    if not any(id.get('id') == budget_id for id in budgets_list):
+        raise ValueError(f"Budget with ID {budget_id} not found")
+    return budget_repository.delete_budget(budget_id)
