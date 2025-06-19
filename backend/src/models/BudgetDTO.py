@@ -21,7 +21,7 @@ class PeriodDTO(BaseModel):
     """
     planned_amount: Optional[Decimal] = Field(None, description="Planned amount for the period")
     name: Optional[str] = Field(None, description="Name of the period (e.g., 'Q1 2024')")
-    # expenses: Optional[list[ExpenseDTO]] = Field(None, description="List of expense items for this period")
+    expenses: Optional[list[ExpenseDTO]] = Field(None, description="List of expense items for this period")
 
 class BudgetItemDTO(BaseModel):
     """
@@ -31,9 +31,9 @@ class BudgetItemDTO(BaseModel):
     owner: Optional[str] = Field(None, description="Owner or responsible person for the budget item")
     name: Optional[str] = Field(None, description="Name of the budget item")
     account_number: Optional[str] = Field(None, description="Primary account number for the budget item")
-    # periods: Optional[list[PeriodDTO]] = Field(None, description="List of budget periods")
+    periods: Optional[list[PeriodDTO]] = Field(None, description="List of budget periods")
     period_names: Optional[list[str]] = Field(None, description="List of names for each budget period")
-    planned_amount_per_period: Optional[list[Decimal]] = Field(None, description="List of planned amounts for each period")
+    # planned_amount_per_period: Optional[list[Decimal]] = Field(None, description="List of planned amounts for each period")
     summary: Optional[Decimal] = Field(None, description="Total budget amount across all periods")
 
 class BudgetDTO(BaseModel):
@@ -41,6 +41,8 @@ class BudgetDTO(BaseModel):
     Data Transfer Object for a list of Budgets.
     Represents a collection of budget items.
     """
+    title: Optional[str] = Field(None, description="Title of the budget")
+    description: Optional[str] = Field(None, description="Description of the budget")
     list_of_budget_items: list[BudgetItemDTO]  # Match the JSON structure from mock data
 
 class ComplexBudgetDTO(BaseModel):
@@ -100,8 +102,21 @@ class ComplexBudgetDTO(BaseModel):
                     owner=item["owner_id"],
                     name=item["label"],
                     account_number=item["account_number"],
+                    periods=[
+                        PeriodDTO(
+                            planned_amount=period["planned_amount"],
+                            name=period["label"],
+                            expenses=[
+                                ExpenseDTO(
+                                    name=expense["name"],
+                                    owner=expense["owner_id"],
+                                    account_number=expense["account_number"],
+                                    amounts=expense.get("amounts", [])
+                                ) for expense in period.get("expenses", [])
+                            ]
+                        ) for period in item["periods"]
+                    ],
                     period_names=[period["label"] for period in item["periods"]],
-                    planned_amount_per_period=[period["planned_amount"] for period in item["periods"]],
                     summary=item["summary"]
                 ) for item in input["list_of_budget_items"]
             ]
