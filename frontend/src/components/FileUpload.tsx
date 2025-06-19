@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import mockData from '../../mock/get-complex-budget.json';
+import { budgetApi } from '../api/routes';
+import type { ApiError } from '../api/routes';
 
 interface FileUploadProps {
   onDataReceived: (data: any) => void;
@@ -18,11 +20,12 @@ const FileUpload = ({ onDataReceived }: FileUploadProps) => {
     setError(null);
 
     try {
-      // Using mock data instead of making an API call
-      onDataReceived(mockData);
+      const data = await budgetApi.importCsvBudget(file);
+      onDataReceived(data);
     } catch (err) {
-      setError('Error loading data. Please try again.');
-      console.error('Error:', err);
+      const apiError = err as ApiError;
+      setError(apiError.message || 'Error loading data. Please try again.');
+      console.error('Error:', apiError);
     } finally {
       setLoading(false);
     }
