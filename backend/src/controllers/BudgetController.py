@@ -4,14 +4,13 @@ import os
 import uuid
 import logging
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from typing import cast
+from fastapi import APIRouter, HTTPException, Response, UploadFile, File, Depends, Body, Path
 from decimal import Decimal
 
 from models.BudgetDTO import BudgetDTO, ComplexBudgetDTO
 from services.AI_Service import extract_budget_from_bytes, extract_budget_from_csv
 import services.BudgetService as budget_service
-from models.Budget import Budget, BudgetItem, Period
+from models.Budget import Budget, BudgetItem, Period, Expense
 from exceptions.AuthorizationError import AuthorizationError
 
 router = APIRouter()
@@ -49,8 +48,7 @@ def generate_id() -> str:
 #         return budgets
 #     except Exception as e:
 #         logger.error(f"Error fetching budgets: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))
-    
+#         raise HTTPException(status_code=500, detail=str(e))    
 @router.get("/", response_model=list[dict])
 async def get_all_budget_ids(credentials: dict = Depends(mock_credentials)):
     """
@@ -66,16 +64,14 @@ async def get_all_budget_ids(credentials: dict = Depends(mock_credentials)):
         logger.error(f"Error fetching budget IDs: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/", response_model=ComplexBudgetDTO, status_code=201)
-async def create_budget(request: ComplexBudgetDTO, credentials: dict = Depends(mock_credentials)):
+@router.post("/", status_code=201)
+async def create_budget(request: ComplexBudgetDTO, response: Response,credentials: dict = Depends(mock_credentials)):
     """
     Create a new budget
     """
     try:
         logger.info("Creating a new budget")
         budget_id = generate_id()
-        budget_item_id = generate_id()
-        period_id = generate_id()
 
         utc_now = datetime.now(timezone.utc).isoformat()
 
@@ -89,23 +85,25 @@ async def create_budget(request: ComplexBudgetDTO, credentials: dict = Depends(m
             user_id=credentials["user_id"],  # TODO Replace with actual user ID logic
             list_of_budget_items=[
                 BudgetItem(
-                    id=budget_item_id,
-                    created_at=utc_now,
-                    updated_at=utc_now,
                     owner_id=item.owner or "",
                     label=item.name or "",
                     account_number=item.account_number or "",
                     category="category_placeholder",  # TODO Replace with actual category logic
+                    updated_at=utc_now,
                     periods=[
                         Period(
-                            id=period_id,
                             label=name,
-                            created_at=utc_now,
                             updated_at=utc_now,
                             planned_amount=period.planned_amount or Decimal("0"),  # Ensure planned_amount is not None
-                            budget_id=budget_id,
-                            budget_item_id=budget_item_id,
-                            expense_list=[]  # Placeholder for expenses, replace with actual logic
+                            expense_list=[
+                                Expense(
+                                    name=expense.name or "",
+                                    owner_id=expense.owner or "",
+                                    account_number=expense.account_number or "",
+                                    amount=expense.amount or Decimal("0"),
+                                    updated_at=utc_now
+                                ) for expense in period.expenses or []
+                            ]
                         ) for name, period in zip(item.period_names or [], item.periods or [])
                     ],
                     summary=item.summary or Decimal("0")  # Ensure summary is not None
@@ -115,7 +113,9 @@ async def create_budget(request: ComplexBudgetDTO, credentials: dict = Depends(m
         )
 
         logger.info(f"Budget created with ID: {budget_id}")
-        return budget_service.create_budget(budget, credentials["user_id"])
+        response.headers["Location"] = f"/budgets/{budget_id}"
+
+        budget_service.create_budget(budget, credentials["user_id"])
     except Exception as e:
         logger.error(f"Error creating budget: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -159,4 +159,21 @@ async def get_budget(budget_id: str, credentials: dict = Depends(mock_credential
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         logger.error(f"Error fetching budget with ID {budget_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/{budget_id}", status_code=204)
+async def update_budget(
+    budget_id: str = Path(..., description="ID of the budget to update"),
+    request: ComplexBudgetDTO = Body(...),
+    credentials: dict = Depends(mock_credentials)
+):
+    """
+    Update an existing budget by ID
+    """
+    try:
+        logger.info(f"Updating budget with ID: {budget_id}")
+        budget_service.update_budget(budget_id, request, credentials["user_id"])
+        logger.info(f"Budget with ID {budget_id} updated successfully")
+    except Exception as e:
+        logger.error(f"Error updating budget with ID {budget_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

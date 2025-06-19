@@ -12,7 +12,7 @@ class ExpenseDTO(BaseModel):
     name: Optional[str] = Field(None, description="Name of the expense item")
     owner: Optional[str] = Field(None, description="Owner or responsible person for the expense")
     account_number: Optional[str] = Field(None, description="Account number associated with the expense")
-    amounts: Optional[list[Decimal]] = Field(None, description="List of amounts for each period")
+    amount: Optional[Decimal] = Field(None, description="Amount of the expense item")
 
 class PeriodDTO(BaseModel):
     """
@@ -115,7 +115,7 @@ class ComplexBudgetDTO(BaseModel):
                                         name=expense["name"],
                                         owner=expense.get("owner", None),
                                         account_number=expense.get("account_number", None),
-                                        amounts=expense.get("amounts", [])
+                                        amount=expense.get("amount", None)
                                     ) for expense in period.get("expense_list", [])
                                 ]
                             ) for period in item["periods"]
@@ -123,6 +123,6 @@ class ComplexBudgetDTO(BaseModel):
                     period_names=[period["label"] for period in item["periods"]],
                     summary=item["summary"]
                 ) for item in input["list_of_budget_items"]
-            ] 
-        )   
-    )
+            ]
+        )
+        )

@@ -72,14 +72,13 @@ class BudgetRepository:
         budget_dict = {
             'id': budget['id'],
             'title': budget['title'],
+            'description': budget['description'],
             'created_at': budget['created_at'],
             'updated_at': budget['updated_at'],
             'user_id': budget['user_id'],
             'period_names': budget['period_names'],
             'list_of_budget_items': [
                 {
-                    'id': item['id'],
-                    'created_at': item['created_at'],
                     'updated_at': item['updated_at'],
                     'owner_id': item['owner_id'],
                     'label': item['label'],
@@ -88,24 +87,15 @@ class BudgetRepository:
                     'summary': str(item['summary']),
                     'periods': [
                         {
-                            'id': period['id'],
                             'label': period['label'],
-                            'created_at': period['created_at'],
                             'updated_at': period['updated_at'],
                             'planned_amount': str(period['planned_amount']),
-                            'budget_id': period['budget_id'],
-                            'budget_item_id': period['budget_item_id'],
                             'expense_list': [
                                 {
-                                    'id': expense['id'],
-                                    'category': expense['category'],
                                     'name': expense['name'],
                                     'owner_id': expense['owner_id'],
                                     'account_number': expense['account_number'],
                                     'amount': str(expense['amount']),
-                                    'period_id': expense['period_id'],
-                                    'budget_id': expense['budget_id'],
-                                    'created_at': expense['created_at'],
                                     'updated_at': expense['updated_at']
                                 }
                                 for expense in period['expense_list']
@@ -129,6 +119,19 @@ class BudgetRepository:
             self.table.put_item(Item=item)
         except Exception as e:
             raise Exception(f"Failed to put budget into DynamoDB: {str(e)}")
+        
+    def update_budget(self, budget: Budget) -> None:
+        """
+        Update an existing budget in DynamoDB
+        """
+        try:
+            item = self._serialize_budget(budget)
+            self.table.put_item(
+                Item=item,
+                ConditionExpression='attribute_exists(id)'  # Ensure the budget exists before updating
+            )
+        except Exception as e:
+            raise Exception(f"Failed to update budget in DynamoDB: {str(e)}")
 
     def get_budget(self, budget_id: str) -> Optional[Budget]:
         """
