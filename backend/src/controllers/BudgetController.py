@@ -101,14 +101,14 @@ async def create_budget(budget_dto: ComplexBudgetDTO, credentials: dict = Depend
                             label=name,
                             created_at=utc_now,
                             updated_at=utc_now,
-                            planned_amount=Decimal(amount),
+                            planned_amount=period.planned_amount or Decimal("0"),  # Ensure planned_amount is not None
                             budget_id=budget_id,
                             budget_item_id=budget_item_id,
                             expense_list=[]  # Placeholder for expenses, replace with actual logic
-                        ) for name, amount in zip(item.period_names or [], item.planned_amount_per_period or [])
+                        ) for name, period in zip(item.period_names or [], item.periods or [])
                     ],
                     summary=item.summary or Decimal("0")  # Ensure summary is not None
-                ) for item in budget_dto.list_of_budget_items or []
+                ) for item in budget_dto.budget.list_of_budget_items or []
             ],
             period_names=budget_dto.period_names
         )
@@ -127,8 +127,8 @@ async def import_csv(file: UploadFile = File(...), credentials: dict = Depends(m
     try:
         logger.info("Importing budget from CSV file")
         contents = await file.read()
-        # budget_list = extract_budget_from_bytes(csv_bytes=contents)
-        budget_dict = cast(BudgetDTO, get_mock_budget_data())
+        budget_dict = extract_budget_from_bytes(csv_bytes=contents)
+        # budget_dict = cast(BudgetDTO, get_mock_budget_data())
         budget = BudgetDTO.model_validate(budget_dict)
 
         complex_budget = ComplexBudgetDTO.parse_from_BudgetDTO(input=budget)
