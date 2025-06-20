@@ -6,8 +6,7 @@ import type { Budget, ComplexBudgetDTO } from './types/Budget'
 // import { budgetApi } from './api/routes'
 import type { ApiError } from './api/routes'
 import { mapRequestToBudget } from './utils/dtoMappers'
-import BudgetGrid from './components/BudgetGrid'
-import DataTable from './components/DataTable'
+import BudgetTable from './components/BudgetTable'
 
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
@@ -38,7 +37,7 @@ function App() {
           {error}
         </div>
       )}
-      {budget && <DataTable data={budget} />}
+      {budget && <BudgetTable budget={budget} />}
     </div>
   )
 }

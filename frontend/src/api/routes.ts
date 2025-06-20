@@ -21,7 +21,7 @@ export const budgetApi = {
   /**
    * Get all budget IDs for the current user
    */
-  getAllBudgetIds: async (): Promise<string[]> => {
+  getAllBudgetIds: async (): Promise<[string, string][]> => {
     const response = await api.get('/budgets', {
       headers: {
         Authorization: `Bearer ${mockCredentials.token}`,
@@ -75,6 +75,17 @@ export const budgetApi = {
    */
   deleteBudget: async (budgetId: string): Promise<void> => {
     await api.delete(`/budgets/${budgetId}`, {
+      headers: {
+        Authorization: `Bearer ${mockCredentials.token}`,
+      },
+    });
+  },
+
+  /**
+   * Update an existing budget by ID
+   */
+  updateBudget: async (budgetId: string, budget: BudgetDTO): Promise<void> => {
+    await api.put(`/budgets/${budgetId}`, budget, {
       headers: {
         Authorization: `Bearer ${mockCredentials.token}`,
       },
