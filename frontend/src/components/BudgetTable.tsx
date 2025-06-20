@@ -25,17 +25,17 @@ const ExpenseDropdown: React.FC<ExpenseDropdownProps> = ({ expenses, isOpen, onT
             <div key={idx} className="bg-gray-50 p-3 rounded-lg text-sm">
               <div className="font-medium text-gray-800">{expense.name}</div>
               <div className="flex items-center gap-4 mt-1 text-gray-600">
-                <div className="flex items-center gap-1">
+                {/* <div className="flex items-center gap-1">
                   <User size={12} />
                   <span>{expense.owner || 'Unassigned'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <CreditCard size={12} />
                   <span>{expense.account_number}</span>
-                </div>
+                </div> */}
                 <div className="flex items-center gap-1 font-medium text-green-600">
-                  <DollarSign size={12} />
-                  <span>${parseFloat(expense.amount).toLocaleString()}</span>
+                  {/* <DollarSign size={12} /> */}
+                  <span>{parseFloat(expense.amount).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -65,7 +65,7 @@ const BudgetTable = ({ budget }: { budget: Budget }) => {
     <div className="w-full max-w-7xl mx-auto p-6 bg-white">
       {/* Budget Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{budget.title}</h1>
+        <p className="text-3xl font-bold text-gray-900 mb-2">{budget.title}</p>
         <p className="text-gray-600">{budget.description}</p>
       </div>
 
