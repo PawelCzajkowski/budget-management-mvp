@@ -7,11 +7,14 @@ import { budgetApi } from './api/routes'
 import type { ApiError } from './api/routes'
 import { mapRequestToBudget } from './utils/dtoMappers'
 import BudgetTable from './components/BudgetTable'
+import EditableBudgetTable from './components/EditableBudgetTable'
 import SideNav from './components/SideNav'
+import Toggle from './components/Toggle'
 
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [editing, setEditing] = useState<boolean>(false)
 
   const handleDataReceived = async (data: ComplexBudgetDTO) => {
     try {
@@ -47,13 +50,23 @@ function App() {
       <main className="flex-1">
         <div className="app">
           <p className="text-2xl font-bold mb-4">Budget Management System</p>
+          {budget && (
+            <Toggle
+              text="Editing"
+              checked={editing}
+              onChange={setEditing}
+            />
+          )}
           {!budget && <FileUpload onDataReceived={handleDataReceived} />}
           {error && (
             <div className="text-red-500 text-sm">
               {error}
             </div>
           )}
-          {budget && <BudgetTable budget={budget} />}
+          {budget && !editing && <BudgetTable budget={budget} />}
+          {budget && editing && (
+            <EditableBudgetTable budget={budget} onChange={setBudget} />
+          )}
         </div>
       </main>
     </div>
