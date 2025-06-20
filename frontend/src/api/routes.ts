@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { BudgetDTO, Budget, ComplexBudgetDTO } from '../types/Budget';
+import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
 
 // You might want to move this to an environment variable
 const API_BASE_URL = 'http://localhost:8888';
@@ -84,7 +84,7 @@ export const budgetApi = {
   /**
    * Update an existing budget by ID
    */
-  updateBudget: async (budgetId: string, budget: BudgetDTO): Promise<void> => {
+  updateBudget: async (budgetId: string, budget: ComplexBudgetDTO): Promise<void> => {
     await api.put(`/budgets/${budgetId}`, budget, {
       headers: {
         Authorization: `Bearer ${mockCredentials.token}`,

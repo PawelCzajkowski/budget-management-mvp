@@ -5,16 +5,19 @@ import FileUpload from './components/FileUpload'
 import type { Budget, ComplexBudgetDTO } from './types/Budget'
 import { budgetApi } from './api/routes'
 import type { ApiError } from './api/routes'
-import { mapRequestToBudget } from './utils/dtoMappers'
+import { mapRequestToBudget, mapBudgetToComplexBudgetDTO } from './utils/dtoMappers'
 import BudgetTable from './components/BudgetTable'
 import EditableBudgetTable from './components/EditableBudgetTable'
 import SideNav from './components/SideNav'
 import Toggle from './components/Toggle'
+import SaveButton from './components/SaveButton'
 
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState<boolean>(false)
+  const [saving, setSaving] = useState<boolean>(false)
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false)
 
   const handleDataReceived = async (data: ComplexBudgetDTO) => {
     try {
@@ -43,6 +46,22 @@ function App() {
     }
   }
 
+  const handleSave = async () => {
+    if (!budget) return;
+    setSaving(true);
+    setError(null);
+    setSaveSuccess(false);
+    try {
+      const dto = mapBudgetToComplexBudgetDTO(budget);
+      await budgetApi.updateBudget(budget.id, dto);
+      setSaveSuccess(true);
+    } catch (err) {
+      const apiError = err as ApiError;
+      setError(apiError.message || 'Failed to save budget');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -57,11 +76,17 @@ function App() {
               onChange={setEditing}
             />
           )}
+          {budget && editing && (
+            <SaveButton onClick={handleSave} saving={saving} />
+          )}
           {!budget && <FileUpload onDataReceived={handleDataReceived} />}
           {error && (
             <div className="text-red-500 text-sm">
               {error}
             </div>
+          )}
+          {saveSuccess && (
+            <div className="text-green-600 text-sm mb-2">Budget saved successfully!</div>
           )}
           {budget && !editing && <BudgetTable budget={budget} />}
           {budget && editing && (

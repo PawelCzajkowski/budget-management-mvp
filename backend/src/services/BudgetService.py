@@ -76,8 +76,6 @@ def update_budget(budget_id: str, request: ComplexBudgetDTO, user_id: str) -> Co
     Update an existing budget.
     Returns the updated budget as ComplexBudgetDTO.
     """
-
-
     utc_now = datetime.now(timezone.utc).isoformat()
 
     # Retrieve the original budget to keep its created_at value
@@ -117,7 +115,7 @@ def update_budget(budget_id: str, request: ComplexBudgetDTO, user_id: str) -> Co
                                 updated_at=utc_now
                             ) for expense in period.expenses or []
                         ]
-                    ) for name, period in zip(item.period_names or [], item.periods or [])
+                    ) for name, period in zip(request.period_names or [], item.periods or [])
                 ],
                 summary=item.summary or Decimal("0")
             ) for item in request.budget.list_of_budget_items or []
