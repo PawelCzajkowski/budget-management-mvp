@@ -3,10 +3,11 @@ import './App.css'
 import FileUpload from './components/FileUpload'
 // import DataTable from './components/DataTable'
 import type { Budget, ComplexBudgetDTO } from './types/Budget'
-// import { budgetApi } from './api/routes'
+import { budgetApi } from './api/routes'
 import type { ApiError } from './api/routes'
 import { mapRequestToBudget } from './utils/dtoMappers'
 import BudgetTable from './components/BudgetTable'
+import SideNav from './components/SideNav'
 
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
@@ -26,18 +27,35 @@ function App() {
     }
   }
 
-  
+  const handleBudgetSelect = async (budgetId: string) => {
+    try {
+      // Fetch the budget by ID
+      const fetchedBudget = await budgetApi.getBudget(budgetId)
+      setBudget(mapRequestToBudget(fetchedBudget))
+      setError(null)
+    } catch (err) {
+      const apiError = err as ApiError
+      setError(apiError.message || 'Failed to load budget')
+      console.error('Error loading budget:', err)
+    }
+  }
+
 
   return (
-    <div className="app">
-      <h1>Budget Management System</h1>
-      <FileUpload onDataReceived={handleDataReceived} />
-      {error && (
-        <div style={{ color: 'red', margin: '1rem 0' }}>
-          {error}
+    <div className="flex min-h-screen bg-gray-50">
+      <SideNav onBudgetSelect={handleBudgetSelect} />
+      <main className="flex-1">
+        <div className="app">
+          <p className="text-2xl font-bold mb-4">Budget Management System</p>
+          {!budget && <FileUpload onDataReceived={handleDataReceived} />}
+          {error && (
+            <div className="text-red-500 text-sm">
+              {error}
+            </div>
+          )}
+          {budget && <BudgetTable budget={budget} />}
         </div>
-      )}
-      {budget && <BudgetTable budget={budget} />}
+      </main>
     </div>
   )
 }
