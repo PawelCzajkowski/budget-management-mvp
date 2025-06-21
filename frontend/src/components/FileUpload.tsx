@@ -34,7 +34,7 @@ const FileUpload = ({ onDataReceived }: FileUploadProps) => {
   const handleUseMockData = () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       onDataReceived(mockData);
     } catch (err) {
@@ -46,24 +46,28 @@ const FileUpload = ({ onDataReceived }: FileUploadProps) => {
   };
 
   return (
-    <div className="file-upload">
+    <div className="file-upload mb-8 p-6 border-2 border-dashed rounded-lg text-center bg-gray-100">
       <button 
         onClick={handleUseMockData}
         disabled={loading}
-        style={{ marginBottom: '1rem', padding: '0.5rem 1rem' }}
+        className="mb-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
         Load Mock Data
       </button>
-      <div>- or -</div>
+      <div className="mb-4">- or -</div>
       <input
         type="file"
         accept=".csv"
         onChange={handleFileUpload}
         disabled={loading}
-        style={{ marginTop: '1rem' }}
+        className="block w-full border border-gray-200 shadow-sm rounded-lg text-sm focus:z-10 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400
+      file:bg-gray-50 file:border-0
+      file:me-4
+      file:py-2 file:px-4
+      dark:file:bg-neutral-700 dark:file:text-neutral-400"
       />
-      {loading && <div>Loading...</div>}
-      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {loading && <div className="text-blue-600">Loading...</div>}
+      {error && <div className="text-red-600">{error}</div>}
     </div>
   );
 };

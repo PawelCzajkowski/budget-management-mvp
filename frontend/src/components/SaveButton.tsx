@@ -6,9 +6,9 @@ interface SaveButtonProps {
   className?: string;
 }
 
-const SaveButton: React.FC<SaveButtonProps> = ({ onClick, saving, className = '' }) => (
+const SaveButton: React.FC<SaveButtonProps> = ({ onClick, saving}) => (
   <button
-    className={`mb-4 px-4 py-2 rounded bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition-colors ${saving ? 'cursor-not-allowed bg-blue-400' : ''} ${className}`}
+    className={'mb-4 px-4 py-2 rounded !bg-blue-600 text-white font-semibold shadow hover:!bg-blue-700 transition-colors'}
     onClick={onClick}
     disabled={saving}
   >
