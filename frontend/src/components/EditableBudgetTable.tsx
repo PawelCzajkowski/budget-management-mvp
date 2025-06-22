@@ -278,6 +278,17 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
     }));
   };
 
+  const removeBudgetItem = (itemIndex: number) => {
+    setBudgetData((prevData) => {
+      const newData = { ...prevData };
+      newData.list_of_budget_items = [
+        ...newData.list_of_budget_items.slice(0, itemIndex),
+        ...newData.list_of_budget_items.slice(itemIndex + 1)
+      ];
+      return newData;
+    });
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-white">
       {/* Budget Header */}
@@ -301,6 +312,9 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
         <table className="w-full bg-white">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
+                
+              </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
                 Budget Item
               </th>
@@ -326,6 +340,15 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
           <tbody className="divide-y divide-gray-200">
             {budgetData.list_of_budget_items.map((item, itemIndex) => (
               <tr key={itemIndex} className="hover:bg-gray-50">
+                <td className="px-6 py-4 border-b text-center">
+                  <button
+                    onClick={() => removeBudgetItem(itemIndex)}
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-red-400 text-white hover:bg-red-500"
+                    title="Remove this item"
+                  >
+                    -
+                  </button>
+                </td>
                 <td className="px-6 py-4 border-b">
                   <div>
                     <EditableCell
