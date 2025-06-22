@@ -18,7 +18,8 @@ const ExpenseDropdown: React.FC<ExpenseDropdownProps> = ({ expenses, isOpen, onT
         {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         {expenses.length} expense{expenses.length !== 1 ? 's' : ''}
       </button>
-      
+
+      {/* Show expenses when dropdown is open */}
       {isOpen && (
         <div className="mt-2 space-y-2 pl-4 border-l-2 border-gray-200">
           {expenses.map((expense, idx) => (
@@ -78,6 +79,9 @@ const BudgetTable = ({ budget }: { budget: Budget }) => {
                 Budget Item
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
+                Account Number
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
                 Owner
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
@@ -99,8 +103,10 @@ const BudgetTable = ({ budget }: { budget: Budget }) => {
                 <td className="px-6 py-4 border-b">
                   <div>
                     <div className="font-medium text-gray-900">{item.label}</div>
-                    <div className="text-sm text-gray-500">{item.account_number}</div>
                   </div>
+                </td>
+                <td className="px-6 py-4 border-b">
+                  <div className="text-gray-700">{item.account_number}</div>
                 </td>
                 <td className="px-6 py-4 border-b">
                   <div className="flex items-center gap-2">
@@ -139,7 +145,7 @@ const BudgetTable = ({ budget }: { budget: Budget }) => {
           </tbody>
           <tfoot className="bg-gray-50">
             <tr>
-              <td colSpan={3} className="px-6 py-4 text-right font-semibold text-gray-700">
+              <td colSpan={4} className="px-6 py-4 text-right font-semibold text-gray-700">
                 Period Totals:
               </td>
               {budget.period_names.map((periodName: string) => {

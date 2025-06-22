@@ -73,7 +73,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, onSave, type = 'text
       className={`cursor-pointer hover:bg-blue-50 rounded px-1 py-1 transition-colors ${className}`}
       title="Click to edit"
     >
-      {type === 'currency' ? formatCurrency(value) : value || 'Click to add...'}
+      {value || 'Click to add...'}
     </div>
   );
 };
@@ -213,7 +213,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                   />
                   
                   <div className="flex items-center gap-4 mt-1 text-gray-600 flex-wrap">
-                    <div className="flex items-center gap-1">
+                    {/* <div className="flex items-center gap-1">
                       <User size={12} />
                       <EditableCell
                         value={expense.owner ?? ''}
@@ -230,9 +230,9 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                         cellId={`expense-${itemIndex}-${periodIndex}-${idx}-account`}
                         className="min-w-24"
                       />
-                    </div>
+                    </div> */}
                     <div className="flex items-center gap-1 font-medium text-green-600">
-                      <DollarSign size={12} />
+                      {/* <DollarSign size={12} /> */}
                       <EditableCell
                         value={expense.amount}
                         onSave={(value) => handleCellEdit({ type: 'expense', itemIndex, periodIndex, expenseIndex: idx, field: 'amount' }, value)}
@@ -305,6 +305,9 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                 Budget Item
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
+                Account number
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
                 Owner
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
@@ -331,6 +334,10 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                       cellId={`item-${itemIndex}-label`}
                       className="font-medium text-gray-900 mb-1"
                     />
+                  </div>
+                </td>
+                <td className="px-6 py-4 border-b">
+                  <div className="flex items-center gap-2">
                     <EditableCell
                       value={item.account_number}
                       onSave={(value) => handleCellEdit({ type: 'budgetItem', itemIndex, field: 'account_number' }, value)}
@@ -390,7 +397,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                 ))}
                 <td className="px-6 py-4 border-b text-center">
                   <div className="font-bold text-lg text-green-600">
-                    {formatCurrency(item.summary)}
+                    {(item.summary)}
                   </div>
                 </td>
               </tr>
@@ -398,7 +405,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
           </tbody>
           <tfoot className="bg-gray-50">
             <tr>
-              <td colSpan={3} className="px-6 py-4 text-right font-semibold text-gray-700">
+              <td colSpan={4} className="px-6 py-4 text-right font-semibold text-gray-700">
                 Period Totals:
               </td>
               {budgetData.period_names.map((periodName) => {
@@ -408,12 +415,12 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                 }, 0);
                 return (
                   <td key={periodName} className="px-6 py-4 text-center font-bold text-gray-900">
-                    {formatCurrency(periodTotal.toString())}
+                    {(periodTotal.toString())}
                   </td>
                 );
               })}
               <td className="px-6 py-4 text-center font-bold text-xl text-green-600">
-                {formatCurrency(
+                {(
                   budgetData.list_of_budget_items.reduce((sum, item) => sum + parseFloat(item.summary), 0).toString()
                 )}
               </td>
@@ -441,7 +448,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
         <div className="bg-green-50 p-4 rounded-lg">
           <div className="text-sm font-medium text-green-600">Total Budget</div>
           <div className="text-2xl font-bold text-green-900">
-            {formatCurrency(
+            {(
               budgetData.list_of_budget_items.reduce((sum, item) => sum + parseFloat(item.summary), 0).toString()
             )}
           </div>
