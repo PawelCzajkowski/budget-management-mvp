@@ -21,6 +21,7 @@ function App() {
   const [deleting, setDeleting] = useState<boolean>(false)
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false)
   const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false)
+  const [sideNavKey, setSideNavKey] = useState<number>(0)
 
   useEffect(() => {
     if (saveSuccess) {
@@ -70,7 +71,15 @@ function App() {
     setSaveSuccess(false);
     try {
       const dto = mapBudgetToComplexBudgetDTO(budget);
-      await budgetApi.updateBudget(budget.id, dto);
+      if (!dto.id) {
+        const response = await budgetApi.createBudget(dto);
+        // If HTTP 201, reload SideNav
+        if (response === 201) {
+          setSideNavKey(k => k + 1);
+        }
+      } else {
+        await budgetApi.updateBudget(budget.id, dto);
+      }
       setSaveSuccess(true);
     } catch (err) {
       const apiError = err as ApiError;
@@ -99,7 +108,7 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <SideNav onBudgetSelect={handleBudgetSelect} />
+      <SideNav key={sideNavKey} onBudgetSelect={handleBudgetSelect} />
       <main className="flex-1">
         <div className="app">
           <p className="text-2xl font-bold mb-4">Budget Management System</p>

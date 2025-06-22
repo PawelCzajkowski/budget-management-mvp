@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { HttpStatusCode } from 'axios';
 import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
 
 // You might want to move this to an environment variable
@@ -33,13 +33,13 @@ export const budgetApi = {
   /**
    * Create a new budget
    */
-  createBudget: async (budget: BudgetDTO): Promise<BudgetDTO> => {
+  createBudget: async (budget: ComplexBudgetDTO): Promise<HttpStatusCode> => {
     const response = await api.post('/budgets', budget, {
       headers: {
         Authorization: `Bearer ${mockCredentials.token}`,
       },
     });
-    return response.data;
+    return response.status;
   },
 
   /**

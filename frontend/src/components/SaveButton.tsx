@@ -15,7 +15,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ onClick, saving, disabled, clas
         : 'bg-blue-600 hover:bg-blue-700 text-white'
     } ${className}`}
     onClick={onClick}
-    disabled={saving || disabled}
+    disabled={saving || !disabled}
   >
     {saving ? 'Saving...' : 'Save'}
   </button>
