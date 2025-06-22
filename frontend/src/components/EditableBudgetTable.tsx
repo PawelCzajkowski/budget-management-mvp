@@ -258,6 +258,26 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
     );
   };
 
+  // Add a new budget item at the end of the list
+  const addBudgetItem = () => {
+    const newBudgetItem = {
+      owner: '',
+      label: '',
+      account_number: '',
+      category: '',
+      periods: budgetData.period_names.map((periodName) => ({
+        label: periodName,
+        planned_amount: '0.00',
+        expense_list: []
+      })),
+      summary: '0.00'
+    };
+    setBudgetData((prevData) => ({
+      ...prevData,
+      list_of_budget_items: [...prevData.list_of_budget_items, newBudgetItem]
+    }));
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-white">
       {/* Budget Header */}
@@ -400,6 +420,16 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
             </tr>
           </tfoot>
         </table>
+      </div>
+
+      {/* Add Budget Item Button */}
+      <div className="flex mt-2">
+        <button
+          onClick={addBudgetItem}
+          className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition-colors text-sm font-semibold"
+        >
+          + Add Budget Item
+        </button>
       </div>
 
       {/* Summary Stats */}
