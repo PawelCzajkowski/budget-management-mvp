@@ -104,14 +104,17 @@ function App() {
         <div className="app">
           <p className="text-2xl font-bold mb-4">Budget Management System</p>
           {budget && (
-            <>
+            <span className="flex mb-4 items-center-safe w-full justify-between">
               <Toggle
                 text="Editing"
                 checked={editing}
                 onChange={setEditing}
               />
-              <DeleteButton onClick={handleDelete} processing={deleting} />
-            </>
+              <span className="space-x-2" >
+                <SaveButton onClick={handleSave} saving={saving} disabled={editing} />
+                <DeleteButton onClick={handleDelete} processing={deleting}/>
+              </span>
+            </span>
           )}
           {!budget && <FileUpload onDataReceived={handleDataReceived} />}
           {error && (
@@ -124,7 +127,6 @@ function App() {
           )}
           {budget && !editing && <BudgetTable budget={budget} />}
           {budget && editing && (<>
-            <SaveButton onClick={handleSave} saving={saving} />
             <EditableBudgetTable budget={budget} onChange={setBudget} />
           </>
           )}
