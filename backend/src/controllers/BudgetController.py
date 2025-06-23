@@ -104,7 +104,7 @@ async def create_budget(request: ComplexBudgetDTO, response: Response,credential
                                     updated_at=utc_now
                                 ) for expense in period.expenses or []
                             ]
-                        ) for name, period in zip(item.period_names or [], item.periods or [])
+                        ) for name, period in zip(item.period_names or request.period_names or [], item.periods or [])
                     ],
                     summary=item.summary or Decimal("0")  # Ensure summary is not None
                 ) for item in request.budget.list_of_budget_items or []

@@ -38,7 +38,7 @@ const mapBudgetItemDTOtoBudgetItem = (item: BudgetItemDTO): BudgetItem => ({
     owner: item.owner || '',
     label: item.name || '',
     account_number: item.account_number || '',
-    category: '',
+    category: item.category || '',
     periods: item.periods?.map(period => mapPeriodDTOtoPeriod(period)) || [],
     summary: item.summary || '',
 });
@@ -60,6 +60,7 @@ const mapBudgetItemToBudgetItemDTO = (item: BudgetItem): BudgetItemDTO => ({
   owner: item.owner || '',
   name: item.label || '',
   account_number: item.account_number || '',
+  category: item.category || '',
   period_names: [], // Assuming this is not used in the backend
   periods: item.periods.map(period => mapPeriodToPeriodDTO(period)),
   summary: item.summary || '',

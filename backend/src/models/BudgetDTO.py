@@ -31,6 +31,7 @@ class BudgetItemDTO(BaseModel):
     owner: Optional[str] = Field(None, description="Owner or responsible person for the budget item")
     name: Optional[str] = Field(None, description="Name of the budget item")
     account_number: Optional[str] = Field(None, description="Primary account number for the budget item")
+    category: Optional[str] = Field(None, description="Category of the budget item")
     periods: Optional[list[PeriodDTO]] = Field(None, description="List of budget periods")
     period_names: Optional[list[str]] = Field(None, description="List of names for each budget period")
     # planned_amount_per_period: Optional[list[Decimal]] = Field(None, description="List of planned amounts for each period")
@@ -106,6 +107,7 @@ class ComplexBudgetDTO(BaseModel):
                         owner=item["owner_id"],
                         name=item["label"],
                         account_number=item["account_number"],
+                        category=item["category"],
                         periods=[
                             PeriodDTO(
                                 planned_amount=period["planned_amount"],

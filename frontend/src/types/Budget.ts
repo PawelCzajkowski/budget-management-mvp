@@ -46,6 +46,7 @@ interface BudgetItemDTO {
   owner: string | null;
   name: string;
   account_number: string;
+  category: string;
   period_names: string[];
   periods: PeriodDTO[];
   summary: string;  // Using string for Decimal compatibility

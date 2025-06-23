@@ -35,7 +35,7 @@ class BudgetItem(TypedDict):
     owner_id: Annotated[str, "ID of the user who owns the budget item"]
     label: Annotated[str, "Name of the budget item"]
     account_number: Annotated[str, "Account number for the expense item"]
-    category: Annotated[str, "Category of the expense item"]
+    category: Annotated[str, "Category of the budget item"]
     # period_type: Annotated[PeriodType, "Type of the budget period (e.g., WEEK, MONTH, QUARTER, YEAR)"]
     periods: Annotated[list[Period], "Periods associated with the budget item"]
     summary: Annotated[Decimal, "Summary amount for the budget item"]

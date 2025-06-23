@@ -100,7 +100,7 @@ def update_budget(budget_id: str, request: ComplexBudgetDTO, user_id: str) -> Co
                 owner_id=item.owner or "",
                 label=item.name or "",
                 account_number=item.account_number or "",
-                category="category_placeholder",
+                category=item.category or "",
                 periods=[
                     Period(
                         label=name,

@@ -97,7 +97,10 @@ function App() {
     setError(null);
     setDeleteSuccess(false);
     try {
-      await budgetApi.deleteBudget(budget.id);
+      const response =await budgetApi.deleteBudget(budget.id);
+      if (response === 204) {
+        setSideNavKey(k => k + 1);
+      }
       setBudget(null);
       setDeleteSuccess(true);
     } catch (err) {

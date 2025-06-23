@@ -289,6 +289,23 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
     });
   };
 
+  const handlePeriodNameEdit = (periodIndex: number, value: string) => {
+    setBudgetData((prevData) => {
+      const newData = { ...prevData };
+      // Update period_names
+      newData.period_names = [...newData.period_names];
+      newData.period_names[periodIndex] = value;
+      // Update each item's period label
+      newData.list_of_budget_items = newData.list_of_budget_items.map((item) => {
+        const newPeriods = item.periods.map((period, idx) =>
+          idx === periodIndex ? { ...period, label: value } : period
+        );
+        return { ...item, periods: newPeriods };
+      });
+      return newData;
+    });
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-white">
       {/* Budget Header */}
@@ -327,9 +344,14 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b">
                 Category
               </th>
-              {budgetData.period_names.map((period) => (
+              {budgetData.period_names.map((period, periodIndex) => (
                 <th key={period} className="px-6 py-4 text-center text-sm font-semibold text-gray-700 border-b">
-                  {period}
+                  <EditableCell
+                    value={period}
+                    onSave={(value) => handlePeriodNameEdit(periodIndex, value)}
+                    cellId={`period-header-${periodIndex}`}
+                    className="text-center font-semibold"
+                  />
                 </th>
               ))}
               <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 border-b">
@@ -428,7 +450,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
           </tbody>
           <tfoot className="bg-gray-50">
             <tr>
-              <td colSpan={4} className="px-6 py-4 text-right font-semibold text-gray-700">
+              <td colSpan={5} className="px-6 py-4 text-right font-semibold text-gray-700">
                 Period Totals:
               </td>
               {budgetData.period_names.map((periodName) => {
