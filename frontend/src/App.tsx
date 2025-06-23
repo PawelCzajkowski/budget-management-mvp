@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import './App.css'
 import FileUpload from './components/FileUpload'
 // import DataTable from './components/DataTable'
@@ -22,6 +22,8 @@ function App() {
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false)
   const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false)
   const [sideNavKey, setSideNavKey] = useState<number>(0)
+  const [showNewBudgetModal, setShowNewBudgetModal] = useState(false);
+  const [newBudgetPeriods, setNewBudgetPeriods] = useState<number>(1);
 
   useEffect(() => {
     if (saveSuccess) {
@@ -106,12 +108,59 @@ function App() {
     }
   };
 
+  const handleAddBudget = () => {
+    setShowNewBudgetModal(true);
+    setNewBudgetPeriods(1);
+  };
+
+  const handleCreateNewBudget = () => {
+    // Create empty period names
+    const period_names = Array.from({ length: newBudgetPeriods }, (_, i) => `Period ${i + 1}`);
+    const newBudget = {
+      id: '',
+      title: 'New Budget',
+      description: '',
+      list_of_budget_items: [],
+      period_names,
+    };
+    setBudget(newBudget);
+    setEditing(true);
+    setShowNewBudgetModal(false);
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <SideNav key={sideNavKey} onBudgetSelect={handleBudgetSelect} />
+      <SideNav key={sideNavKey} onBudgetSelect={handleBudgetSelect} onAddBudget={handleAddBudget} />
       <main className="flex-1">
         <div className="app">
           <p className="text-2xl font-bold mb-4">Budget Management System</p>
+          {/* New Budget Modal */}
+          {showNewBudgetModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+                <h3 className="text-lg font-semibold mb-4">Create New Budget</h3>
+                <label className="block mb-2 text-sm font-medium">Number of periods:</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={newBudgetPeriods}
+                  onChange={e => setNewBudgetPeriods(Number(e.target.value))}
+                  className="w-full border px-3 py-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                    onClick={() => setShowNewBudgetModal(false)}
+                  >Cancel</button>
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    onClick={handleCreateNewBudget}
+                  >Create</button>
+                </div>
+              </div>
+            </div>
+          )}
           {budget && (
             <span className="flex mb-4 items-center-safe w-full justify-between">
               <Toggle
