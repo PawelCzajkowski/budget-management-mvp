@@ -1,5 +1,6 @@
 import axios, { HttpStatusCode } from 'axios';
 import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
+import type { LoginRequest, LoginResponse } from '../types/Auth';
 
 // You might want to move this to an environment variable
 const API_BASE_URL = 'http://localhost:8888';
@@ -16,6 +17,16 @@ const mockCredentials = {
   user_id: 'mock_user_id',
   token: 'mock_token',
 };
+
+// Attach JWT token to all requests if present
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export const budgetApi = {
   /**
@@ -116,6 +127,15 @@ export const budgetApi = {
     });
     return response.data;
   },
+};
+
+export const login = async (data: LoginRequest): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>('/auth/login', data);
+  return response.data;
+};
+
+export const register = async (data: LoginRequest): Promise<void> => {
+  await api.post('/auth/register', data);
 };
 
 // Error handling types

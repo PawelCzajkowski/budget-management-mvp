@@ -12,6 +12,18 @@ import SideNav from './components/SideNav'
 import Toggle from './components/Toggle'
 import SaveButton from './components/SaveButton'
 import DeleteButton from './components/DeleteButton'
+import Login from './components/Login'
+
+function getUserEmailFromToken(): string {
+  const token = localStorage.getItem('token');
+  if (!token) return '';
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.email || '';
+  } catch {
+    return '';
+  }
+}
 
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
@@ -24,6 +36,8 @@ function App() {
   const [sideNavKey, setSideNavKey] = useState<number>(0)
   const [showNewBudgetModal, setShowNewBudgetModal] = useState(false);
   const [newBudgetPeriods, setNewBudgetPeriods] = useState<number>(1);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
+  const [userEmail, setUserEmail] = useState<string>(getUserEmailFromToken());
 
   useEffect(() => {
     if (saveSuccess) {
@@ -131,9 +145,31 @@ function App() {
     setShowNewBudgetModal(false);
   };
 
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setUserEmail(getUserEmailFromToken());
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setUserEmail('');
+    window.location.reload();
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <SideNav key={sideNavKey} onBudgetSelect={handleBudgetSelect} onAddBudget={handleAddBudget} />
+      <SideNav
+        key={sideNavKey}
+        onBudgetSelect={handleBudgetSelect}
+        onAddBudget={handleAddBudget}
+        userName={userEmail}
+        onLogout={handleLogout}
+      />
       <main className="flex-1">
         <div className="app">
           <p className="text-2xl font-bold mb-4">Budget Management System</p>

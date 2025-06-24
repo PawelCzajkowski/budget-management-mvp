@@ -1,0 +1,1 @@
+from backend.src.controllers.AuthController import router as auth_router 

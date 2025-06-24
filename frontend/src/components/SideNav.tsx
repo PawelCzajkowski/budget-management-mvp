@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { budgetApi } from '../api/routes';
 
 interface BudgetNavItem {
@@ -9,12 +9,16 @@ interface BudgetNavItem {
 interface SideNavProps {
   onBudgetSelect: (budgetId: string) => void;
   onAddBudget: () => void;
+  userName: string;
+  onLogout: () => void;
 }
 
-const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget }) => {
+const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName, onLogout }) => {
   const [budgets, setBudgets] = useState<BudgetNavItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     budgetApi.getAllBudgetIds()
@@ -29,29 +33,60 @@ const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget }) => {
       });
   }, []);
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   return (
     <aside className="h-screen w-48 bg-white border-r border-gray-200 flex flex-col p-6 shadow-lg">
-      {/* User placeholder */}
-      <div className="flex flex-col items-center mb-8">
-        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
-          {/* Placeholder for user avatar */}
+      {/* User section with dropdown */}
+      <div className="flex flex-col items-center mb-8 relative">
+        <div
+          ref={avatarRef}
+          className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2 cursor-pointer relative"
+          onClick={() => setDropdownOpen((open) => !open)}
+        >
           <span className="text-2xl text-gray-400">👤</span>
+          {/* Dropdown menu */}
+          {dropdownOpen && (
+            <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 w-42 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-4 flex flex-col items-center">
+              <div className="mb-2 text-gray-800 font-semibold truncate w-full text-center">{userName}</div>
+              <a
+                onClick={onLogout}
+                className="font-semibold mt-2"
+              >
+                Logout
+              </a>
+            </div>
+          )}
         </div>
-        <div className="h-4 w-20 bg-gray-100 rounded mb-1" />
-        <div className="h-3 w-12 bg-gray-100 rounded" />
+        <div className="px-2 py-1 bg-gray-100 rounded-full mb-1 text-center text-sm text-gray-700 font-medium overflow-hidden truncate" title={userName}>{userName}</div>
       </div>
       {/* Budgets List */}
       <div className="flex-1 overflow-y-auto">
         <h2 className="text-xs font-semibold text-gray-500 uppercase mb-4 tracking-wider">Budgets</h2>
         {loading && <div className="text-gray-400 text-sm">Loading...</div>}
         {error && <div className="text-red-500 text-sm">{error}</div>}
-      {/* Add Budget Button */}
-      <button
-        className="my-1 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-        onClick={onAddBudget}
-      >
-        + Add budget
-      </button>
+        {/* Add Budget Button */}
+        <button
+          className="my-1 w-full py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+          onClick={onAddBudget}
+        >
+          + Add budget
+        </button>
         <ul className="space-y-2">
           {budgets.map((budget) => (
             <li key={budget.id} onClick={() => onBudgetSelect(budget.id)}>
