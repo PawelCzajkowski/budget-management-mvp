@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Budget, Expense } from '../types/Budget';
-import { ChevronDown, ChevronRight, DollarSign, User, CreditCard, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, DollarSign, User, CreditCard, CircleMinus, CircleX, AlertCircle, CircleMinusIcon } from 'lucide-react';
 import BudgetCorrectionModal from './BudgetCorrectionModal';
 import type { ActionOptionDTO } from './BudgetCorrectionModal';
 import { budgetApi } from '../api/routes';
@@ -351,7 +351,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                   className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs"
                   title="Remove expense"
                 >
-                  ×
+                   <CircleX />
                 </button>
                 
                 <div className="pr-6">
@@ -526,7 +526,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                     className="w-6 h-6 flex items-center justify-center rounded-full bg-red-400 text-white hover:bg-red-500"
                     title="Remove this item"
                   >
-                    -
+                    <CircleMinusIcon />
                   </button>
                 </td>
                 <td className="px-6 py-4 border-b">
