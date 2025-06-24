@@ -128,3 +128,51 @@ class ComplexBudgetDTO(BaseModel):
             ]
         )
         )
+
+class ExpenseInputDTO(BaseModel):
+    expense_id: Optional[str]
+    amount: Decimal
+
+class PeriodInputDTO(BaseModel):
+    period_id: str
+    planned_amount: Decimal
+
+class PeriodMismatchValidationRequest(BaseModel):
+    budget_id: str
+    period_id: str
+    planned_amount: Decimal
+    expenses: list[ExpenseInputDTO]
+    all_periods: list[PeriodInputDTO]
+
+class ActionOptionDTO(BaseModel):
+    key: str
+    label: str
+    description: str
+    target_periods: Optional[list[dict]] = None
+    max_movable_amount: Optional[Decimal] = None
+    saved_amount: Optional[Decimal] = None
+    redistributable_periods: Optional[list[dict]] = None
+
+class PeriodMismatchValidationResponse(BaseModel):
+    actions: list[ActionOptionDTO]
+    summary: dict
+
+class MoveDetailsDTO(BaseModel):
+    amount: Decimal
+    target_period_id: str
+
+class RedistributionDTO(BaseModel):
+    period_id: str
+    amount: Decimal
+
+class ApplyPeriodCorrectionsRequest(BaseModel):
+    budget_id: str
+    period_id: str
+    action: str
+    move_details: Optional[MoveDetailsDTO] = None
+    redistribution: Optional[list[RedistributionDTO]] = None
+
+class ApplyPeriodCorrectionsResponse(BaseModel):
+    status: str
+    message: str
+    updated_budget: Optional[dict] = None

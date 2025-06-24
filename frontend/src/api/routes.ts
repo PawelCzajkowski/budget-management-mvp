@@ -73,12 +73,13 @@ export const budgetApi = {
   /**
    * Delete a budget by ID
    */
-  deleteBudget: async (budgetId: string): Promise<void> => {
-    await api.delete(`/budgets/${budgetId}`, {
+  deleteBudget: async (budgetId: string): Promise<HttpStatusCode> => {
+    const response = await api.delete(`/budgets/${budgetId}`, {
       headers: {
         Authorization: `Bearer ${mockCredentials.token}`,
       },
     });
+    return response.status;
   },
 
   /**
@@ -90,6 +91,30 @@ export const budgetApi = {
         Authorization: `Bearer ${mockCredentials.token}`,
       },
     });
+  },
+
+  /**
+   * Validate period mismatch and get possible actions
+   */
+  validatePeriodMismatch: async (payload: any): Promise<any> => {
+    const response = await api.post('/budgets/validate-period-mismatch', payload, {
+      headers: {
+        Authorization: `Bearer ${mockCredentials.token}`,
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Apply period corrections (move, savings, etc.)
+   */
+  applyPeriodCorrections: async (payload: any): Promise<any> => {
+    const response = await api.post('/budgets/apply-period-corrections', payload, {
+      headers: {
+        Authorization: `Bearer ${mockCredentials.token}`,
+      },
+    });
+    return response.data;
   },
 };
 

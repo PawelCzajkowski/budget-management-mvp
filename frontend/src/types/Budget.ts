@@ -1,4 +1,5 @@
 interface Expense {
+  id?: string;
   name: string;
   owner: string | null;
   account_number: string;

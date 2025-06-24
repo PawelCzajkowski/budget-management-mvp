@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Response, UploadFile, File, Depends, Body, Path
 from decimal import Decimal
 
-from models.BudgetDTO import BudgetDTO, ComplexBudgetDTO
+from models.BudgetDTO import BudgetDTO, ComplexBudgetDTO, PeriodMismatchValidationRequest, PeriodMismatchValidationResponse, ActionOptionDTO, ApplyPeriodCorrectionsRequest, ApplyPeriodCorrectionsResponse
 from services.AI_Service import extract_budget_from_bytes, extract_budget_from_csv
 import services.BudgetService as budget_service
 from models.Budget import Budget, BudgetItem, Period, Expense
@@ -196,3 +196,23 @@ async def delete_budget(budget_id: str, credentials: dict = Depends(mock_credent
     except Exception as e:
         logger.error(f"Error deleting budget with ID {budget_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/validate-period-mismatch", response_model=PeriodMismatchValidationResponse)
+async def validate_period_mismatch(
+    request: PeriodMismatchValidationRequest,
+    credentials: dict = Depends(mock_credentials)
+):
+    try:
+        return budget_service.validate_period_mismatch(request, credentials["user_id"])
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/apply-period-corrections", response_model=ApplyPeriodCorrectionsResponse)
+async def apply_period_corrections(
+    request: ApplyPeriodCorrectionsRequest,
+    credentials: dict = Depends(mock_credentials)
+):
+    try:
+        return budget_service.apply_period_corrections(request, credentials["user_id"])
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { Budget, Expense } from '../types/Budget';
-import { ChevronDown, ChevronRight, DollarSign, User, CreditCard } from 'lucide-react';
+import { ChevronDown, ChevronRight, DollarSign, User, CreditCard, AlertCircle } from 'lucide-react';
+import BudgetCorrectionModal from './BudgetCorrectionModal';
+import type { ActionOptionDTO } from './BudgetCorrectionModal';
+import { budgetApi } from '../api/routes';
 
 interface EditableCellProps {
   value: string | number;
@@ -87,6 +90,23 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
   const [expandedCells, setExpandedCells] = useState<{ [key: string]: boolean }>({});
   const [budgetData, setBudgetData] = useState<Budget>(budget);
 
+  // Correction modal state
+  const [correctionModalOpen, setCorrectionModalOpen] = useState(false);
+  const [correctionActions, setCorrectionActions] = useState<ActionOptionDTO[]>([]);
+  const [correctionSummary, setCorrectionSummary] = useState<any>(null);
+  const [correctionContext, setCorrectionContext] = useState<{ itemIndex: number; periodIndex: number } | null>(null);
+
+  const [periodValidation, setPeriodValidation] = useState<{ [key: string]: boolean }>({});
+
+  const parseCurrency = (value: string | number | undefined | null): number => {
+    if (typeof value === 'number') return value;
+    if (typeof value !== 'string') return 0;
+    // Remove anything that is not a digit, a decimal point, or a negative sign.
+    const sanitized = value.replace(/[^0-9.-]/g, '');
+    const number = parseFloat(sanitized);
+    return isNaN(number) ? 0 : number;
+  };
+
   useEffect(() => {
     setBudgetData(budget);
   }, [budget]);
@@ -96,6 +116,15 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
       onChange(budgetData);
     }
   }, [budgetData, onChange]);
+
+  useEffect(() => {
+    budgetData.list_of_budget_items.forEach((item, itemIndex) => {
+      item.periods.forEach((_, periodIndex) => {
+        validatePeriod(itemIndex, periodIndex);
+      });
+    });
+    // eslint-disable-next-line
+  }, [budgetData]);
 
   const formatCurrency = (amount: string | number): string => {
     let num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -117,6 +146,93 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
     | { type: 'expense'; itemIndex: number; periodIndex: number; expenseIndex: number; field: keyof Expense }
     | { type: 'header'; field: keyof Budget };
 
+  // Helper to validate period and update notification icon state
+  const validatePeriod = (itemIndex: number, periodIndex: number) => {
+    const period = budgetData.list_of_budget_items[itemIndex].periods[periodIndex];
+    const plannedAmount = parseFloat(period.planned_amount);
+    const expensesSum = period.expense_list.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+    setPeriodValidation(prev => ({
+      ...prev,
+      [`${itemIndex}-${periodIndex}`]: plannedAmount !== expensesSum
+    }));
+  };
+
+  // Helper to trigger correction modal if mismatch
+  const handlePeriodOrExpenseEdit = async (itemIndex: number, periodIndex: number) => {
+    const period = budgetData.list_of_budget_items[itemIndex].periods[periodIndex];
+    const plannedAmount = parseFloat(period.planned_amount);
+    const expensesSum = period.expense_list.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+
+    if (plannedAmount !== expensesSum) {
+      // Prepare payload for validation API
+      const payload = {
+        budget_id: budgetData.id,
+        period_id: period.label,
+        planned_amount: plannedAmount,
+        expenses: period.expense_list.map(exp => ({
+          expense_id: exp.id || '',
+          amount: parseFloat(exp.amount),
+        })),
+        all_periods: budgetData.period_names.map((name, idx) => ({
+          period_id: name,
+          planned_amount: parseFloat(
+            budgetData.list_of_budget_items[itemIndex].periods[idx]?.planned_amount || '0'
+          ),
+        })),
+      };
+      try {
+        const result = await budgetApi.validatePeriodMismatch(payload);
+        setCorrectionActions(result.actions);
+        setCorrectionSummary(result.summary);
+        setCorrectionContext({ itemIndex, periodIndex });
+        setCorrectionModalOpen(true);
+      } catch (err) {
+        // Optionally handle error
+      }
+    }
+  };
+
+  // Correction modal handlers
+  const handleCorrectionApprove = (correctionPayload: any) => {
+    if (!correctionContext) return;
+    const { itemIndex, periodIndex } = correctionContext;
+    const updatedBudget = JSON.parse(JSON.stringify(budgetData));
+
+    if (correctionPayload.action === 'move' && correctionPayload.move_details) {
+      const moveAmount = parseCurrency(correctionPayload.move_details.amount);
+      // Subtract from current period
+      const sourcePeriod = updatedBudget.list_of_budget_items[itemIndex].periods[periodIndex];
+      sourcePeriod.planned_amount = String(parseCurrency(sourcePeriod.planned_amount) - moveAmount);
+      // Add to target period (within the same budget item)
+      const targetPeriod = updatedBudget.list_of_budget_items[itemIndex].periods.find(
+        (p: any) => p.label === correctionPayload.move_details.target_period_id
+      );
+      if (targetPeriod) {
+        targetPeriod.planned_amount = String(parseCurrency(targetPeriod.planned_amount) + moveAmount);
+      }
+    } else if (correctionPayload.action === 'savings' && correctionPayload.redistribution) {
+      // Subtract total redistributed from current period
+      const sourcePeriod = updatedBudget.list_of_budget_items[itemIndex].periods[periodIndex];
+      const totalRedistributed = correctionPayload.redistribution.reduce((sum: number, r: any) => sum + parseCurrency(r.amount), 0);
+      sourcePeriod.planned_amount = String(parseCurrency(sourcePeriod.planned_amount) - totalRedistributed);
+      // Add to each target period (within the same budget item)
+      correctionPayload.redistribution.forEach((r: any) => {
+        const targetPeriod = updatedBudget.list_of_budget_items[itemIndex].periods.find(
+          (p: any) => p.label === r.period_id
+        );
+        if (targetPeriod) {
+          targetPeriod.planned_amount = String(parseCurrency(targetPeriod.planned_amount) + parseCurrency(r.amount));
+        }
+      });
+    }
+    setBudgetData(updatedBudget);
+    setCorrectionModalOpen(false);
+  };
+  const handleCorrectionClose = () => {
+    setCorrectionModalOpen(false);
+  };
+
+  // Patch handleCellEdit to validate period after period/expense edits
   const handleCellEdit = (path: EditPath, value: string) => {
     setBudgetData(prevData => {
       const newData = { ...prevData };
@@ -133,11 +249,13 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
         const newSummary = newData.list_of_budget_items[path.itemIndex].periods.reduce((sum, period) => 
           sum + parseFloat(period.planned_amount || '0'), 0);
         newData.list_of_budget_items[path.itemIndex].summary = newSummary.toString();
+        setTimeout(() => validatePeriod(path.itemIndex, path.periodIndex), 0);
       } else if (path.type === 'expense') {
         newData.list_of_budget_items[path.itemIndex].periods[path.periodIndex].expense_list[path.expenseIndex] = {
           ...newData.list_of_budget_items[path.itemIndex].periods[path.periodIndex].expense_list[path.expenseIndex],
           [path.field]: value
         };
+        setTimeout(() => validatePeriod(path.itemIndex, path.periodIndex), 0);
       } else if (path.type === 'header') {
         (newData as any)[path.field] = value;
       }
@@ -146,6 +264,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
     });
   };
 
+  // Patch addExpense and removeExpense to validate period
   const addExpense = (itemIndex: number, periodIndex: number) => {
     const newExpense = {
       name: '',
@@ -153,20 +272,51 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
       account_number: '',
       amount: '0.00'
     };
-
     setBudgetData((prevData) => {
-      const newData = JSON.parse(JSON.stringify(prevData)); // Deep copy to avoid mutation
+      const newData = JSON.parse(JSON.stringify(prevData));
       newData.list_of_budget_items[itemIndex].periods[periodIndex].expense_list.push(newExpense);
+      setTimeout(() => validatePeriod(itemIndex, periodIndex), 0);
       return newData;
     });
   };
 
   const removeExpense = (itemIndex: number, periodIndex: number, expenseIndex: number) => {
     setBudgetData((prevData) => {
-      const newData = JSON.parse(JSON.stringify(prevData)); // Deep copy to avoid mutation
+      const newData = JSON.parse(JSON.stringify(prevData));
       newData.list_of_budget_items[itemIndex].periods[periodIndex].expense_list.splice(expenseIndex, 1);
+      setTimeout(() => validatePeriod(itemIndex, periodIndex), 0);
       return newData;
     });
+  };
+
+  // New: Handler for notification icon click
+  const handleNotificationClick = async (itemIndex: number, periodIndex: number) => {
+    const period = budgetData.list_of_budget_items[itemIndex].periods[periodIndex];
+    const plannedAmount = parseFloat(period.planned_amount);
+    const payload = {
+      budget_id: budgetData.id,
+      period_id: period.label,
+      planned_amount: plannedAmount,
+      expenses: period.expense_list.map(exp => ({
+          expense_id: exp.id || '',
+          amount: parseFloat(exp.amount)
+         })),
+      all_periods: budgetData.period_names.map((name, idx) => ({
+        period_id: name,
+        planned_amount: parseFloat(
+          budgetData.list_of_budget_items[itemIndex].periods[idx]?.planned_amount || '0'
+        ),
+      })),
+    };
+    try {
+      const result = await budgetApi.validatePeriodMismatch(payload);
+      setCorrectionActions(result.actions);
+      setCorrectionSummary(result.summary);
+      setCorrectionContext({ itemIndex, periodIndex });
+      setCorrectionModalOpen(true);
+    } catch (err) {
+      // Optionally handle error
+    }
   };
 
   const ExpenseDropdown = ({
@@ -308,6 +458,14 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-white">
+      {/* Correction Modal */}
+      <BudgetCorrectionModal
+        open={correctionModalOpen}
+        actions={correctionActions}
+        summary={correctionSummary}
+        onApprove={handleCorrectionApprove}
+        onClose={handleCorrectionClose}
+      />
       {/* Budget Header */}
       <div className="mb-6">
         <EditableCell
@@ -410,36 +568,57 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                     className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                   />
                 </td>
-                {item.periods.map((period, periodIndex) => (
-                  <td key={periodIndex} className="px-6 py-4 border-b">
-                    <div className="text-center">
-                      <EditableCell
-                        value={period.planned_amount}
-                        onSave={(value) => handleCellEdit({ type: 'period', itemIndex, periodIndex }, value)}
-                        type="currency"
-                        cellId={`period-${itemIndex}-${periodIndex}`}
-                        className="font-medium text-gray-900 mb-2"
-                      />
-                      {period.expense_list.length > 0 && (
-                        <ExpenseDropdown
-                          expenses={period.expense_list}
-                          isOpen={!!expandedCells[`${itemIndex}-${periodIndex}`]}
-                          onToggle={() => toggleExpanded(itemIndex, periodIndex)}
-                          itemIndex={itemIndex}
-                          periodIndex={periodIndex}
-                        />
-                      )}
-                      {period.expense_list.length === 0 && (
-                        <button
-                          onClick={() => addExpense(itemIndex, periodIndex)}
-                          className="text-xs text-blue-600 hover:text-blue-800 mt-1"
-                        >
-                          + Add Expense
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                ))}
+                {item.periods.map((period, periodIndex) => {
+                  const plannedAmount = parseFloat(period.planned_amount);
+                  const expensesSum = period.expense_list.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+                  const exceeded = expensesSum > plannedAmount;
+                  const mismatch = periodValidation[`${itemIndex}-${periodIndex}`];
+                  return (
+                    <td key={periodIndex} className={`px-6 py-4 border-b ${exceeded ? 'border-2 border-red-500 bg-red-50' : ''}`}>
+                      <div className="text-center relative">
+                        <div className="flex items-center justify-center mb-2 gap-1">
+                          <EditableCell
+                            value={period.planned_amount}
+                            onSave={(value) => handleCellEdit({ type: 'period', itemIndex, periodIndex }, value)}
+                            type="currency"
+                            cellId={`period-${itemIndex}-${periodIndex}`}
+                            className={`font-medium text-gray-900 ${exceeded ? 'text-red-600' : ''}`}
+                          />
+                          {mismatch && (
+                            <button
+                              className="ml-1 p-0.5 rounded-full border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                              title="Resolve period mismatch"
+                              style={{ lineHeight: 0 }}
+                              onMouseDown={e => { e.preventDefault(); handleNotificationClick(itemIndex, periodIndex); }}
+                            >
+                              <AlertCircle size={18} className="text-yellow-500" />
+                            </button>
+                          )}
+                        </div>
+                        {period.expense_list.length > 0 && (
+                          <ExpenseDropdown
+                            expenses={period.expense_list}
+                            isOpen={!!expandedCells[`${itemIndex}-${periodIndex}`]}
+                            onToggle={() => toggleExpanded(itemIndex, periodIndex)}
+                            itemIndex={itemIndex}
+                            periodIndex={periodIndex}
+                          />
+                        )}
+                        {period.expense_list.length === 0 && (
+                          <button
+                            onClick={() => addExpense(itemIndex, periodIndex)}
+                            className="text-xs text-blue-600 hover:text-blue-800 mt-1"
+                          >
+                            + Add Expense
+                          </button>
+                        )}
+                        {exceeded && (
+                          <div className="mt-1 text-xs text-red-600 font-semibold">Exceeded!</div>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
                 <td className="px-6 py-4 border-b text-center">
                   <div className="font-bold text-lg text-green-600">
                     {(item.summary)}
