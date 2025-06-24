@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Budget, Expense } from '../types/Budget';
-import { ChevronDown, ChevronRight, DollarSign, User, CreditCard, CircleMinus, CircleX, AlertCircle, CircleMinusIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight, DollarSign, User, CreditCard, Trash2, CircleX, AlertCircle } from 'lucide-react';
 import BudgetCorrectionModal from './BudgetCorrectionModal';
 import type { ActionOptionDTO } from './BudgetCorrectionModal';
 import { budgetApi } from '../api/routes';
@@ -523,10 +523,10 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                 <td className="px-6 py-4 border-b text-center">
                   <button
                     onClick={() => removeBudgetItem(itemIndex)}
-                    className="w-6 h-6 flex items-center justify-center rounded-full bg-red-400 text-white hover:bg-red-500"
+                    className="flex items-center justify-center text-red-400 hover:text-red-500"
                     title="Remove this item"
                   >
-                    <CircleMinusIcon />
+                    <Trash2 />
                   </button>
                 </td>
                 <td className="px-6 py-4 border-b">
@@ -582,7 +582,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                             onSave={(value) => handleCellEdit({ type: 'period', itemIndex, periodIndex }, value)}
                             type="currency"
                             cellId={`period-${itemIndex}-${periodIndex}`}
-                            className={`font-medium text-gray-900 ${exceeded ? 'text-red-600' : ''}`}
+                            className={`font-medium text-gray-900 min-w-24  ${exceeded ? 'text-red-600' : ''}`}
                           />
                           {mismatch && (
                             <button
@@ -657,7 +657,7 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
       <div className="flex mt-2">
         <button
           onClick={addBudgetItem}
-          className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition-colors text-sm font-semibold"
+          className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-700 transition-colors text-sm font-semibold"
         >
           + Add Budget Item
         </button>

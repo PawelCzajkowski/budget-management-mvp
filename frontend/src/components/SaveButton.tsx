@@ -12,7 +12,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ onClick, saving, disabled, clas
     className={`mb-4 px-4 py-2 rounded font-semibold shadow transition-colors ${
       saving || !disabled
         ? 'bg-gray-300 cursor-not-allowed'
-        : 'bg-blue-600 hover:bg-blue-700 text-white'
+        : 'bg-blue-500 hover:bg-blue-700 text-white'
     } ${className}`}
     onClick={onClick}
     disabled={saving || !disabled}

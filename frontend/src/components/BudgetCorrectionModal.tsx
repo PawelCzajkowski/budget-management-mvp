@@ -13,9 +13,25 @@ export interface ActionOptionDTO {
 interface BudgetCorrectionModalProps {
   open: boolean;
   actions: ActionOptionDTO[];
-  summary: any;
-  onApprove: (correctionPayload: any) => void;
+  summary: {
+    planned_amount: number;
+    expenses_sum: number;
+    difference: number;
+  };
+  onApprove: (correctionPayload: CorrectionPayload) => void;
   onClose: () => void;
+}
+
+interface CorrectionPayload {
+  action: string;
+  move_details?: {
+    amount: number;
+    target_period_id: string;
+  };
+  redistribution?: Array<{
+    period_id: string;
+    amount: number;
+  }>;
 }
 
 const BudgetCorrectionModal: React.FC<BudgetCorrectionModalProps> = ({ open, actions, summary, onApprove, onClose }) => {
@@ -34,7 +50,6 @@ const BudgetCorrectionModal: React.FC<BudgetCorrectionModalProps> = ({ open, act
         target_period_id: moveAction?.target_periods?.[0]?.period_id || ''
       });
     } else if (selectedAction === 'savings') {
-      const savingsAction = actions.find(a => a.key === 'savings');
       // Start with one row by default
       setRedistribution([
         { period_id: '', amount: 0 }
@@ -66,7 +81,7 @@ const BudgetCorrectionModal: React.FC<BudgetCorrectionModalProps> = ({ open, act
   if (!open) return null;
 
   const handleApprove = () => {
-    let payload: any = { action: selectedAction };
+    const payload: CorrectionPayload = { action: selectedAction };
     if (selectedAction === 'move') {
       payload.move_details = moveDetails;
     } else if (selectedAction === 'savings') {
@@ -75,11 +90,56 @@ const BudgetCorrectionModal: React.FC<BudgetCorrectionModalProps> = ({ open, act
     onApprove(payload);
   };
 
+  // Helper function to determine if approve button should be disabled
+  const isApproveDisabled = () => {
+    console.log('DEBUG: selectedAction', selectedAction);
+    if (!selectedAction) return true;
+    
+    // Simple actions that don't require additional input
+    if (selectedAction === 'pending' || selectedAction === 'exceeded') {
+      return false;
+    }
+    
+    // Move action requires amount and target period
+    if (selectedAction === 'move') {
+      return !moveDetails.amount || !moveDetails.target_period_id;
+    }
+    
+    // Savings action - use the same validation logic as useEffect
+    if (selectedAction === 'savings') {
+      const savingsAction = actions.find(a => a.key === 'savings');
+      const savedAmount = Number(savingsAction?.saved_amount || 0);
+      const total = redistribution.reduce((sum, r) => sum + (parseFloat(String(r.amount)) || 0), 0);
+      const usedPeriods = redistribution.map(r => r.period_id).filter(Boolean);
+      const hasDuplicates = new Set(usedPeriods).size !== usedPeriods.length;
+      
+      console.log('DEBUG: Savings validation', { 
+        savedAmount, 
+        total, 
+        hasDuplicates, 
+        usedPeriods, 
+        redistribution,
+        hasEmptyPeriods: redistribution.some(r => !r.period_id)
+      });
+      
+      // Use the same validation logic as the useEffect
+      if (hasDuplicates) {
+        return true;
+      } else if (Math.abs(total - savedAmount) > 0.01) {
+        return true;
+      } else {
+        return redistribution.some(r => !r.period_id);
+      }
+    }
+    
+    return true;
+  };
+
+  // Add debug log before return
+  console.log('DEBUG: Approve button state', { selectedAction, disabled: isApproveDisabled(), actions });
+
   // For savings: add/remove redistribution rows
   const savingsAction = actions.find(a => a.key === 'savings');
-  const availablePeriods = (savingsAction?.redistributable_periods || []).filter(
-    p => !redistribution.some(r => r.period_id === p.period_id)
-  );
   const allPeriods = savingsAction?.redistributable_periods || [];
 
   return (
@@ -212,17 +272,9 @@ const BudgetCorrectionModal: React.FC<BudgetCorrectionModalProps> = ({ open, act
             Discard
           </button>
           <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={handleApprove}
-            disabled={
-              !selectedAction ||
-              (selectedAction === 'move' && (!moveDetails.amount || !moveDetails.target_period_id)) ||
-              (selectedAction === 'savings' && (
-                !!redistributeError ||
-                redistribution.some(r => !r.period_id) ||
-                Math.abs(redistribution.reduce((sum, r) => sum + (parseFloat(String(r.amount)) || 0), 0) - Number(actions.find(a => a.key === 'savings')?.saved_amount || 0)) > 0.01
-              ))
-            }
+            disabled={isApproveDisabled()}
           >
             Approve
           </button>

@@ -16,7 +16,7 @@ const Toggle: React.FC<ToggleProps> = ({ text, checked, onChange }) => (
                 checked={checked}
                 onChange={e => onChange(e.target.checked)}
             />
-            <span className="w-12 h-8 flex items-center flex-shrink-0 ml-4 p-1 bg-gray-300 rounded-full duration-300 ease-in-out peer-checked:bg-green-400 after:w-6 after:h-6 after:bg-white after:rounded-full after:shadow-md after:duration-300 peer-checked:after:translate-x-4"></span>
+            <span className="w-12 h-8 flex items-center flex-shrink-0 ml-4 p-1 bg-gray-300 rounded-full duration-300 ease-in-out peer-checked:bg-green-300 after:w-6 after:h-6 after:bg-white after:rounded-full after:shadow-md after:duration-300 peer-checked:after:translate-x-4"></span>
         </label>
     </div>
 );
