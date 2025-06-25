@@ -157,14 +157,26 @@ function App() {
   };
 
   if (!isAuthenticated) {
-    return <div className="flex min-h-screen w-screen bg-white">
-      {/* <SideNav
-        key={sideNavKey}
-        onBudgetSelect={handleBudgetSelect}
-        onAddBudget={handleAddBudget}
-        userName={userEmail}
-        onLogout={handleLogout}
-      /> */}
+    return (
+      <>
+      {budget && (
+        <div className="flex min-h-screen w-screen bg-white">
+          <aside className='border-r border-gray-200 shadow-lg'><Login onLogin={handleLogin} /></aside>
+          <div className="flex-1 flex flex-col items-center min-h-screen">
+        <span className="flex mb-4 items-center-safe w-full justify-between">
+        <Toggle
+          text="Editing"
+          checked={editing}
+          onChange={setEditing}
+        />
+          </span>
+          {editing && <EditableBudgetTable budget={budget} onChange={setBudget} />}
+          {!editing && <BudgetTable budget={budget} />}
+          </div>
+        </div>
+      )}
+      {!budget && (
+      <div className="flex min-h-screen w-screen bg-white">
       <main className="flex-1 flex flex-col items-center min-h-screen">
         <div className="app">
           <Login onLogin={handleLogin} />
@@ -172,7 +184,10 @@ function App() {
         <div className="text-gray-400 text-ld">- or -</div>
         <FileUpload onDataReceived={handleDataReceived} />
       </main>
-    </div>;
+    </div>
+    )}
+    </>
+    )
   }
 
   return (

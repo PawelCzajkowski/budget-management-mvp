@@ -122,7 +122,7 @@ async def create_budget(request: ComplexBudgetDTO, response: Response, user: dic
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/import-csv", response_model=ComplexBudgetDTO)
-async def import_csv(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+async def import_csv(file: UploadFile = File(...)):
     """
     Import budget from CSV file
     """

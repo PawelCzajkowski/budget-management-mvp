@@ -62,8 +62,7 @@ export const budgetApi = {
 
     const response = await api.post('/budgets/import-csv', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${mockCredentials.token}`,
+        'Content-Type': 'multipart/form-data'
       },
     });
     return response.data;
