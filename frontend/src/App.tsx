@@ -200,7 +200,7 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen w-screen bg-gray-50">
       {/* Help Button and Modal (always visible) */}
 <HelpButton onClick={() => setHelpOpen(true)} />
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
@@ -254,7 +254,9 @@ function App() {
               </span>
             </span>
           )}
-          {!budget && <FileUpload onDataReceived={handleDataReceived} />}
+          {!budget && <div className="flex justify-center items-center h-96">
+            <FileUpload onDataReceived={handleDataReceived} />
+          </div>}
           {error && (
             <div className="text-red-500 text-sm">
               {error}
