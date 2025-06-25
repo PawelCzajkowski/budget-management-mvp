@@ -46,21 +46,13 @@ const FileUpload = ({ onDataReceived }: FileUploadProps) => {
   };
 
   return (
-    <div className="file-upload mb-8 p-6 border-2 border-dashed rounded-lg text-center bg-gray-100">
-      <button 
-        onClick={handleUseMockData}
-        disabled={loading}
-        className="mb-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-      >
-        Load Mock Data
-      </button>
-      <div className="mb-4">- or -</div>
+    <div className="file-upload mb-8 p-6 rounded-lg text-center">
       <input
         type="file"
         accept=".csv"
         onChange={handleFileUpload}
         disabled={loading}
-        className="block w-full border border-gray-200 shadow-sm rounded-lg text-sm focus:z-10 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400
+        className="block w-fit border border-gray-200 shadow-sm rounded-lg text-sm focus:z-10 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400
       file:bg-gray-50 file:border-0
       file:me-4
       file:py-2 file:px-4

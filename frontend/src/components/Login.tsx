@@ -36,10 +36,10 @@ const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
+        className="bg-white p-8 max-w-md"
       >
         <h2 className="text-2xl font-bold mb-6 text-center">
           {mode === 'login' ? 'Login' : 'Register'}

@@ -57,7 +57,6 @@ function App() {
     try {
       // Here we would normally make an API call to create/import the budget
       // For now, we'll assume the data is already in the correct format
-      
       setBudget(mapRequestToBudget(data))
       setError(null)
     } catch (err) {
@@ -158,7 +157,22 @@ function App() {
   };
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    return <div className="flex min-h-screen w-screen bg-white">
+      {/* <SideNav
+        key={sideNavKey}
+        onBudgetSelect={handleBudgetSelect}
+        onAddBudget={handleAddBudget}
+        userName={userEmail}
+        onLogout={handleLogout}
+      /> */}
+      <main className="flex-1 flex flex-col items-center min-h-screen">
+        <div className="app">
+          <Login onLogin={handleLogin} />
+        </div>
+        <div className="text-gray-400 text-ld">- or -</div>
+        <FileUpload onDataReceived={handleDataReceived} />
+      </main>
+    </div>;
   }
 
   return (
