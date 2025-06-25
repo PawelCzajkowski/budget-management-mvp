@@ -47,6 +47,9 @@ const FileUpload = ({ onDataReceived }: FileUploadProps) => {
 
   return (
     <div className="file-upload mb-8 p-6 rounded-lg text-center bg-white">
+      <div className="text-center text-md mb-4">
+        Import data from CSV file
+      </div>
       <input
         type="file"
         accept=".csv"
