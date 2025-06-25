@@ -13,6 +13,9 @@ import Toggle from './components/Toggle'
 import SaveButton from './components/SaveButton'
 import DeleteButton from './components/DeleteButton'
 import Login from './components/Login'
+import HelpModal from './components/HelpModal'
+import { CircleQuestionMark } from 'lucide-react'
+import HelpButton from './components/HelpButton'
 
 function getUserEmailFromToken(): string {
   const token = localStorage.getItem('token');
@@ -38,6 +41,7 @@ function App() {
   const [newBudgetPeriods, setNewBudgetPeriods] = useState<number>(1);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
   const [userEmail, setUserEmail] = useState<string>(getUserEmailFromToken());
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     if (saveSuccess) {
@@ -159,9 +163,14 @@ function App() {
   if (!isAuthenticated) {
     return (
       <>
+      {/* Help Button and Modal (always visible) */}
+      <HelpButton onClick={() => setHelpOpen(true)} />
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
       {budget && (
         <div className="flex min-h-screen w-screen bg-white">
-          <aside className='border-r border-gray-200 shadow-lg'><Login onLogin={handleLogin} /></aside>
+          <aside className='border-r border-gray-200 shadow-lg'>
+            <Login onLogin={handleLogin} />
+          </aside>
           <div className="flex-1 flex flex-col items-center min-h-screen">
         <span className="flex mb-4 items-center-safe w-full justify-between">
         <Toggle
@@ -192,6 +201,9 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Help Button and Modal (always visible) */}
+<HelpButton onClick={() => setHelpOpen(true)} />
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
       <SideNav
         key={sideNavKey}
         onBudgetSelect={handleBudgetSelect}
