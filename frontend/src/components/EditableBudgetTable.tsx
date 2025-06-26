@@ -84,9 +84,10 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, onSave, type = 'text
 interface EditableBudgetTableProps {
   budget: Budget;
   onChange?: (budget: Budget) => void;
+  isAuthenticated: boolean;
 }
 
-const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => {
+const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudgetTableProps) => {
   const [expandedCells, setExpandedCells] = useState<{ [key: string]: boolean }>({});
   const [budgetData, setBudgetData] = useState<Budget>(budget);
 
@@ -586,12 +587,18 @@ const EditableBudgetTable = ({ budget, onChange }: EditableBudgetTableProps) => 
                           />
                           {mismatch && (
                             <button
-                              className="ml-1 p-0.5 rounded-full border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                              className="ml-1 p-0.5 rounded-full border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 relative group"
                               title="Resolve period mismatch"
                               style={{ lineHeight: 0 }}
                               onMouseDown={e => { e.preventDefault(); handleNotificationClick(itemIndex, periodIndex); }}
+                              disabled={!isAuthenticated}
                             >
                               <AlertCircle size={18} className="text-yellow-500" />
+                              {!isAuthenticated && (
+                                <span className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute left-1/2 -translate-x-1/2 top-full mt-1 px-2 py-1 text-xs bg-black text-white rounded shadow z-10 whitespace-nowrap">
+                                  You need to log in
+                                </span>
+                              )}
                             </button>
                           )}
                         </div>

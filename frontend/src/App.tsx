@@ -163,46 +163,63 @@ function App() {
   if (!isAuthenticated) {
     return (
       <>
-      {/* Help Button and Modal (always visible) */}
-      <HelpButton onClick={() => setHelpOpen(true)} />
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
-      {budget && (
-        <div className="flex min-h-screen w-screen bg-white">
-          <aside className='border-r border-gray-200 shadow-lg'>
-            <Login onLogin={handleLogin} />
-          </aside>
-          <div className="flex-1 flex flex-col items-center min-h-screen">
-        <span className="flex mb-4 items-center-safe w-full justify-between">
-        <Toggle
-          text="Editing"
-          checked={editing}
-          onChange={setEditing}
-        />
-          </span>
-          {editing && <EditableBudgetTable budget={budget} onChange={setBudget} />}
-          {!editing && <BudgetTable budget={budget} />}
+        {/* Help Button and Modal (always visible) */}
+        <HelpButton onClick={() => setHelpOpen(true)} />
+        <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+        {budget && (
+          <div className="flex min-h-screen w-screen bg-white">
+            <aside className='border-r border-gray-200 shadow-lg'>
+              <Login onLogin={handleLogin} />
+            </aside>
+            <div className="flex-1 flex flex-col items-center min-h-screen">
+            <div className="w-full flex justify-center">
+                <p className="text-2xl font-bold my-4">Budget Management System</p>
+              </div>
+              <span className="flex mb-4 items-center-safe w-full justify-between">
+                <Toggle
+                  text="Editing"
+                  checked={editing}
+                  onChange={setEditing}
+                />
+                <span className="space-x-2" >
+                  <SaveButton
+                    onClick={handleSave}
+                    saving={saving}
+                    disabled={!isAuthenticated || !editing}
+                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                  />
+                  <DeleteButton
+                    onClick={handleDelete}
+                    processing={deleting}
+                    disabled={!isAuthenticated}
+                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                  />
+                </span>
+              </span>
+              {editing && <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={isAuthenticated} />}
+              {!editing && <BudgetTable budget={budget} />}
+            </div>
           </div>
-        </div>
-      )}
-      {!budget && (
-      <div className="flex min-h-screen w-screen bg-white">
-      <main className="flex-1 flex flex-col items-center min-h-screen">
-        <div className="app">
-          <Login onLogin={handleLogin} />
-        </div>
-        <div className="text-gray-400 text-ld">- or -</div>
-        <FileUpload onDataReceived={handleDataReceived} />
-      </main>
-    </div>
-    )}
-    </>
+        )}
+        {!budget && (
+          <div className="flex min-h-screen w-screen bg-white">
+            <main className="flex-1 flex flex-col items-center min-h-screen">
+              <div className="app">
+                <Login onLogin={handleLogin} />
+              </div>
+              <div className="text-gray-400 text-ld">- or -</div>
+              <FileUpload onDataReceived={handleDataReceived} />
+            </main>
+          </div>
+        )}
+      </>
     )
   }
 
   return (
     <div className="flex min-h-screen w-screen bg-gray-50">
       {/* Help Button and Modal (always visible) */}
-<HelpButton onClick={() => setHelpOpen(true)} />
+      <HelpButton onClick={() => setHelpOpen(true)} />
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
       <SideNav
         key={sideNavKey}
@@ -213,7 +230,34 @@ function App() {
       />
       <main className="flex-1">
         <div className="app">
-          <p className="text-2xl font-bold mb-4">Budget Management System</p>
+          {budget && (
+            <>
+              <div className="w-full flex justify-center">
+                <p className="text-2xl font-bold mb-4">Budget Management System</p>
+              </div>
+              <span className="flex mb-4 items-center-safe w-full justify-between">
+                <Toggle
+                  text="Editing"
+                  checked={editing}
+                  onChange={setEditing}
+                />
+                <span className="space-x-2" >
+                  <SaveButton
+                    onClick={handleSave}
+                    saving={saving}
+                    disabled={!isAuthenticated || !editing}
+                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                  />
+                  <DeleteButton
+                    onClick={handleDelete}
+                    processing={deleting}
+                    disabled={!isAuthenticated}
+                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                  />
+                </span>
+              </span>
+            </>
+          )}
           {/* New Budget Modal */}
           {showNewBudgetModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
@@ -241,19 +285,6 @@ function App() {
               </div>
             </div>
           )}
-          {budget && (
-            <span className="flex mb-4 items-center-safe w-full justify-between">
-              <Toggle
-                text="Editing"
-                checked={editing}
-                onChange={setEditing}
-              />
-              <span className="space-x-2" >
-                <SaveButton onClick={handleSave} saving={saving} disabled={editing} />
-                <DeleteButton onClick={handleDelete} processing={deleting}/>
-              </span>
-            </span>
-          )}
           {!budget && <div className="flex justify-center items-center h-96">
             <FileUpload onDataReceived={handleDataReceived} />
           </div>}
@@ -267,7 +298,7 @@ function App() {
           )}
           {budget && !editing && <BudgetTable budget={budget} />}
           {budget && editing && (<>
-            <EditableBudgetTable budget={budget} onChange={setBudget} />
+            <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={isAuthenticated} />
           </>
           )}
         </div>
