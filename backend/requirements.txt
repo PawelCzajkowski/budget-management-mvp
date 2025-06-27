@@ -51,3 +51,4 @@ email-validator
 # Note: boto3-stubs is optional and can be used for type checking with boto3
 boto3
 boto3-stubs[dynamodb]
+mangum==0.19.0
