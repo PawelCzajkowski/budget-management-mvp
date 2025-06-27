@@ -1,30 +1,33 @@
 import React, { useState } from 'react';
 import { login, register } from '../api/routes';
-import type { LoginRequest } from '../types/Auth';
+import type { LoginRequest, RegisterRequest, RegisterResponse } from '../types/Auth';
 
 const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setRegisterSuccess(false);
+    setRegisterSuccess(null);
     try {
-      const data: LoginRequest = { email, password };
       if (mode === 'login') {
+        const data: LoginRequest = { email, password };
         const res = await login(data);
         localStorage.setItem('token', res.access_token);
         onLogin();
       } else {
-        await register(data);
-        setRegisterSuccess(true);
+        const data: RegisterRequest = { username, email, password };
+        const res: RegisterResponse = await register(data);
+        setRegisterSuccess(res.message || 'Registration successful! Please log in.');
         setMode('login');
+        setUsername('');
         setEmail('');
         setPassword('');
       }
@@ -45,9 +48,21 @@ const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
           {mode === 'login' ? 'Login' : 'Register'}
         </h2>
         {registerSuccess && (
-          <div className="mb-4 text-green-600">Registration successful! Please log in.</div>
+          <div className="mb-4 text-green-600">{registerSuccess}</div>
         )}
         {error && <div className="mb-4 text-red-500">{error}</div>}
+        {mode === 'register' && (
+          <div className="mb-4">
+            <label className="block mb-1 font-medium">Username</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+            />
+          </div>
+        )}
         <div className="mb-4">
           <label className="block mb-1 font-medium">Email</label>
           <input
@@ -85,7 +100,7 @@ const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
                 onClick={() => {
                   setMode('register');
                   setError(null);
-                  setRegisterSuccess(false);
+                  setRegisterSuccess(null);
                 }}
               >
                 Register

@@ -1,6 +1,7 @@
 import axios, { HttpStatusCode } from 'axios';
 import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
-import type { LoginRequest, LoginResponse } from '../types/Auth';
+import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../types/Auth';
+import { AWS_CONFIG } from '../config/aws';
 
 // You might want to move this to an environment variable
 const API_BASE_URL = 'http://localhost:8888';
@@ -133,8 +134,9 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   return response.data;
 };
 
-export const register = async (data: LoginRequest): Promise<void> => {
-  await api.post('/auth/register', data);
+export const register = async (data: RegisterRequest): Promise<RegisterResponse> => {
+  const response = await api.post<RegisterResponse>('/auth/register', data);
+  return response.data;
 };
 
 // Error handling types

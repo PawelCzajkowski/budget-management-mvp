@@ -44,6 +44,9 @@ python-dateutil==2.8.2
 uuid==1.30
 python-dotenv
 
+# Email validation for Pydantic EmailStr
+email-validator
+
 # AWS SDK
 # Note: boto3-stubs is optional and can be used for type checking with boto3
 boto3
