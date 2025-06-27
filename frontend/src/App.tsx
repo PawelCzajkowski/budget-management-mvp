@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import FileUpload from './components/FileUpload'
-// import DataTable from './components/DataTable'
 import type { Budget, ComplexBudgetDTO } from './types/Budget'
 import { budgetApi } from './api/routes'
 import type { ApiError } from './api/routes'
@@ -14,7 +13,6 @@ import SaveButton from './components/SaveButton'
 import DeleteButton from './components/DeleteButton'
 import Login from './components/Login'
 import HelpModal from './components/HelpModal'
-import { CircleQuestionMark } from 'lucide-react'
 import HelpButton from './components/HelpButton'
 
 function getUserEmailFromToken(): string {
@@ -42,6 +40,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
   const [userEmail, setUserEmail] = useState<string>(getUserEmailFromToken());
   const [helpOpen, setHelpOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     if (saveSuccess) {
@@ -148,9 +147,14 @@ function App() {
     setShowNewBudgetModal(false);
   };
 
-  const handleLogin = () => {
+  // Open login modal handler
+  const openLoginModal = () => setShowLoginModal(true);
+
+  // Called when login is successful
+  const handleLoginSuccess = () => {
     setIsAuthenticated(true);
     setUserEmail(getUserEmailFromToken());
+    setShowLoginModal(false);
   };
 
   const handleLogout = () => {
@@ -162,17 +166,67 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <>
+      <div className="flex min-h-screen w-screen bg-white">
         {/* Help Button and Modal (always visible) */}
         <HelpButton onClick={() => setHelpOpen(true)} />
         <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
-        {budget && (
-          <div className="flex min-h-screen w-screen bg-white">
-            <aside className='border-r border-gray-200 shadow-lg'>
-              <Login onLogin={handleLogin} />
-            </aside>
-            <div className="flex-1 flex flex-col items-center min-h-screen">
-            <div className="w-full flex justify-center">
+        <SideNav
+          key={sideNavKey}
+          onBudgetSelect={handleBudgetSelect}
+          onAddBudget={handleAddBudget}
+          userName={userEmail}
+          onLogout={() => {}} // No logout for logged-out users
+          onLogin={openLoginModal}
+          isAuthenticated={isAuthenticated}
+        />
+        <main className="flex-1 flex flex-col items-center min-h-screen">
+          {/* Login Modal */}
+          {showLoginModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+              <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-0 max-h-screen border border-blue-200">
+                <button
+                  className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-2xl font-bold focus:outline-none"
+                  onClick={() => setShowLoginModal(false)}
+                  aria-label="Close login modal"
+                >
+                  ×
+                </button>
+                <div className="px-8 py-8">
+                  <Login onLogin={handleLoginSuccess} />
+                </div>
+              </div>
+            </div>
+          )}
+          {/* New Budget Modal for logged-out users */}
+          {showNewBudgetModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+                <h3 className="text-lg font-semibold mb-4">Create New Budget</h3>
+                <label className="block mb-2 text-sm font-medium">Number of periods:</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={newBudgetPeriods}
+                  onChange={e => setNewBudgetPeriods(Number(e.target.value))}
+                  className="w-full border px-3 py-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                    onClick={() => setShowNewBudgetModal(false)}
+                  >Cancel</button>
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    onClick={handleCreateNewBudget}
+                  >Create</button>
+                </div>
+              </div>
+            </div>
+          )}
+          {budget && (
+            <>
+              <div className="w-full flex justify-center">
                 <p className="text-2xl font-bold my-4">Budget Management System</p>
               </div>
               <span className="flex mb-4 items-center-safe w-full justify-between">
@@ -198,21 +252,19 @@ function App() {
               </span>
               {editing && <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={isAuthenticated} />}
               {!editing && <BudgetTable budget={budget} />}
-            </div>
-          </div>
-        )}
-        {!budget && (
-          <div className="flex min-h-screen w-screen bg-white">
-            <main className="flex-1 flex flex-col items-center min-h-screen">
+            </>
+          )}
+          {!budget && (
+            <>
               <div className="app">
-                <Login onLogin={handleLogin} />
+                <Login onLogin={handleLoginSuccess} />
               </div>
               <div className="text-gray-400 text-ld">- or -</div>
               <FileUpload onDataReceived={handleDataReceived} />
-            </main>
-          </div>
-        )}
-      </>
+            </>
+          )}
+        </main>
+      </div>
     )
   }
 
@@ -227,6 +279,7 @@ function App() {
         onAddBudget={handleAddBudget}
         userName={userEmail}
         onLogout={handleLogout}
+        isAuthenticated={isAuthenticated}
       />
       <main className="flex-1">
         <div className="app">

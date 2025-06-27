@@ -36,7 +36,7 @@ const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex items-center justify-center bg-gray-100">
+    <div className="flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 max-w-md"

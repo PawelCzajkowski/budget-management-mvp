@@ -11,9 +11,11 @@ interface SideNavProps {
   onAddBudget: () => void;
   userName: string;
   onLogout: () => void;
+  onLogin?: () => void;
+  isAuthenticated: boolean;
 }
 
-const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName, onLogout }) => {
+const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName, onLogout, onLogin, isAuthenticated }) => {
   const [budgets, setBudgets] = useState<BudgetNavItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +23,13 @@ const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName
   const avatarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setError(null); // Clear error before fetching
+    if (!isAuthenticated) {
+      setBudgets([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     budgetApi.getAllBudgetIds()
       .then((data) => {
         // data is [id, title][]
@@ -31,7 +40,7 @@ const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName
         setError('Failed to load budgets');
         setLoading(false);
       });
-  }, []);
+  }, [userName, isAuthenticated]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -64,12 +73,21 @@ const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName
           {dropdownOpen && (
             <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 w-42 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-4 flex flex-col items-center">
               <div className="mb-2 text-gray-800 font-semibold truncate w-full text-center">{userName}</div>
-              <a
-                onClick={onLogout}
-                className="font-semibold mt-2"
-              >
-                Logout
-              </a>
+              {onLogin ? (
+                <a
+                  onClick={onLogin}
+                  className="font-semibold mt-2 cursor-pointer"
+                >
+                  Login
+                </a>
+              ) : (
+                <a
+                  onClick={onLogout}
+                  className="font-semibold mt-2 cursor-pointer"
+                >
+                  Logout
+                </a>
+              )}
             </div>
           )}
         </div>
