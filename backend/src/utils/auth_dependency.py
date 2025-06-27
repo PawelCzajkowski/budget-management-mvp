@@ -5,6 +5,10 @@ from utils.jwt_utils import verify_jwt_token
 security = HTTPBearer()
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Verifies JWT using AWS Cognito JWKs. Returns Cognito claims dict.
+    'sub' is the user_id, 'name' may be present if set in Cognito.
+    """
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid auth header")
     token = credentials.credentials

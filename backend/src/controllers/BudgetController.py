@@ -1,6 +1,4 @@
 from datetime import datetime, timezone
-import json
-import os
 import uuid
 import logging
 
@@ -16,50 +14,18 @@ from utils.auth_dependency import get_current_user
 
 router = APIRouter()
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Load mock data
-MOCK_DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'tests', 'mock-import-csv-response.json')
-
-def get_mock_budget_data():
-    with open(MOCK_DATA_PATH, 'r') as f:
-        return json.load(f)
-
-def mock_credentials():
-    return {"user_id": "mock_user_id", "token": "mock_token"}
-
 
 def generate_id() -> str:
     return str(uuid.uuid4())
 
-
-# @router.get("/", response_model=List[ComplexBudgetDTO])
-# async def get_budgets(credentials: dict = Depends(mock_credentials)):
-#     """
-#     Get all budgets
-#     """
-#     try:
-#         logger.info("Fetching all budgets")
-#         # Placeholder - replace with actual service call
-
-#         budgets = budget_service.get_budget
-#         logger.info(f"Fetched {len(budgets)} budgets")
-#         return budgets
-#     except Exception as e:
-#         logger.error(f"Error fetching budgets: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))    
 @router.get("/", response_model=list[dict])
 async def get_all_budget_ids(user: dict = Depends(get_current_user)):
-    """
-    Get all budget IDs
-    """
     try:
         logger.info("Fetching all budget IDs")
         budget_ids = budget_service.get_all_budget_ids(user["sub"])
         logger.info(f"Fetched {len(budget_ids)} budget IDs")
-        
         return budget_ids
     except Exception as e:
         logger.error(f"Error fetching budget IDs: {str(e)}")
@@ -67,16 +33,10 @@ async def get_all_budget_ids(user: dict = Depends(get_current_user)):
 
 @router.post("/", status_code=201)
 async def create_budget(request: ComplexBudgetDTO, response: Response, user: dict = Depends(get_current_user)):
-    """
-    Create a new budget
-    """
     try:
         logger.info("Creating a new budget")
         budget_id = generate_id()
-
         utc_now = datetime.now(timezone.utc).isoformat()
-
-        # Parse ComplexBudgetDTO into Budget object
         budget = Budget(
             id=budget_id,
             title=request.budget.title or "",
@@ -112,10 +72,8 @@ async def create_budget(request: ComplexBudgetDTO, response: Response, user: dic
             ],
             period_names=request.period_names
         )
-
         logger.info(f"Budget created with ID: {budget_id}")
         response.headers["Location"] = f"/budgets/{budget_id}"
-
         budget_service.create_budget(budget, user["sub"])
     except Exception as e:
         logger.error(f"Error creating budget: {str(e)}")
