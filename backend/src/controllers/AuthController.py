@@ -1,18 +1,20 @@
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, EmailStr
-from jose import jwt
 import os
-from datetime import datetime, timedelta
 import logging
+import boto3
+from botocore.exceptions import ClientError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-key")
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRE_MINUTES = 60 * 24  # 1 day
+AWS_REGION = os.getenv("AWS_REGION")
+COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
+COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
+
+cognito_client = boto3.client("cognito-idp", region_name=AWS_REGION)
 
 class RegisterRequest(BaseModel):
     username: str
@@ -31,187 +33,101 @@ class RegisterResponse(BaseModel):
     message: str
     user_id: str
 
-# Mock user storage for development
-# TODO: Replace with AWS Cognito in production
-_mock_users = {}
-
 def _validate_password(password: str) -> bool:
-    """
-    Validate password strength.
-    TODO: Implement proper password validation rules
-    """
-    if len(password) < 8:
-        return False
-    return True
-
-def _create_user_in_cognito(username: str, email: str, password: str) -> str:
-    """
-    Create user in AWS Cognito.
-    TODO: Implement actual Cognito integration
-    """
-    # Mock implementation for development
-    # In production, this would call AWS Cognito API
-    import boto3
-    
-    try:
-        # TODO: Uncomment and configure for production
-        # cognito_client = boto3.client('cognito-idp', region_name=os.getenv('AWS_REGION'))
-        # 
-        # response = cognito_client.sign_up(
-        #     ClientId=os.getenv('COGNITO_CLIENT_ID'),
-        #     Username=username,
-        #     Password=password,
-        #     UserAttributes=[
-        #         {
-        #             'Name': 'email',
-        #             'Value': email
-        #         }
-        #     ]
-        # )
-        # return response['UserSub']
-        
-        # Mock implementation
-        user_id = f"mock_user_{len(_mock_users) + 1}"
-        _mock_users[email] = {
-            "user_id": user_id,
-            "username": username,
-            "email": email,
-            "password": password  # In production, this would be hashed
-        }
-        logger.info(f"Mock user created: {username} ({email}) with ID: {user_id}")
-        return user_id
-        
-    except Exception as e:
-        logger.error(f"Error creating user in Cognito: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create user"
-        )
-
-def _authenticate_user_in_cognito(email: str, password: str) -> dict:
-    """
-    Authenticate user with AWS Cognito.
-    TODO: Implement actual Cognito integration
-    """
-    # Mock implementation for development
-    # In production, this would call AWS Cognito API
-    try:
-        # TODO: Uncomment and configure for production
-        # cognito_client = boto3.client('cognito-idp', region_name=os.getenv('AWS_REGION'))
-        # 
-        # response = cognito_client.initiate_auth(
-        #     ClientId=os.getenv('COGNITO_CLIENT_ID'),
-        #     AuthFlow='USER_PASSWORD_AUTH',
-        #     AuthParameters={
-        #         'USERNAME': email,
-        #         'PASSWORD': password
-        #     }
-        # )
-        # return response['AuthenticationResult']
-        
-        # Mock implementation
-        if email not in _mock_users:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials"
-            )
-        
-        user = _mock_users[email]
-        if user["password"] != password:  # In production, this would be hashed comparison
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials"
-            )
-        
-        return {
-            "sub": user["user_id"],
-            "email": user["email"],
-            "username": user["username"]
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error authenticating user: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Authentication failed"
-        )
+    # Simple password validation (Cognito will also enforce its own policy)
+    return len(password) >= 8
 
 @router.post("/register", response_model=RegisterResponse, status_code=201)
 def register(request: RegisterRequest):
     """
-    Register a new user.
-    In production, this will create a user in AWS Cognito.
+    Register a new user in AWS Cognito.
     """
-    try:
-        # Validate input
-        if not request.username or not request.email or not request.password:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username, email, and password are required"
-            )
-        
-        if not _validate_password(request.password):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be at least 8 characters long"
-            )
-        
-        # Check if user already exists
-        if request.email in _mock_users:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="User with this email already exists"
-            )
-        
-        # Create user (mock implementation)
-        user_id = _create_user_in_cognito(request.username, request.email, request.password)
-        
-        logger.info(f"User registered successfully: {request.username} ({request.email})")
-        
-        return RegisterResponse(
-            message="User registered successfully",
-            user_id=user_id
+    if not request.username or not request.email or not request.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username, email, and password are required"
         )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Registration error: {str(e)}")
+    if not _validate_password(request.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long"
+        )
+    try:
+        response = cognito_client.sign_up(
+            ClientId=COGNITO_CLIENT_ID,
+            Username=request.email,
+            Password=request.password,
+            UserAttributes=[
+                {"Name": "email", "Value": request.email},
+                {"Name": "name", "Value": request.username}
+            ]
+        )
+        user_sub = response["UserSub"]
+        logger.info(f"Cognito user registered: {request.username} ({request.email}) with sub: {user_sub}")
+        return RegisterResponse(
+            message="User registered successfully. Please check your email to confirm your account.",
+            user_id=user_sub
+        )
+    except cognito_client.exceptions.UsernameExistsException:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User with this username or email already exists"
+        )
+    except ClientError as e:
+        logger.error(f"Cognito registration error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed"
+            detail=f"Registration failed: {str(e)}"
         )
 
 @router.post("/login", response_model=TokenResponse)
 def login(request: LoginRequest):
     """
-    Authenticate user and return JWT token.
-    In production, this will authenticate with AWS Cognito.
+    Authenticate user with AWS Cognito and return JWT token.
     """
+    if not request.email or not request.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email and password are required"
+        )
     try:
-        # Authenticate user (mock implementation)
-        user_data = _authenticate_user_in_cognito(request.email, request.password)
-        
-        # Generate JWT token
-        payload = {
-            "sub": user_data["sub"],
-            "email": user_data["email"],
-            "username": user_data.get("username", ""),
-            "exp": datetime.utcnow() + timedelta(minutes=JWT_EXPIRE_MINUTES)
-        }
-        token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-        
-        logger.info(f"User logged in successfully: {user_data['email']}")
-        
-        return TokenResponse(access_token=token, token_type="bearer")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Login error: {str(e)}")
+        # Cognito default is to use username, but we want to allow login by email
+        # So we need to find the username for the given email
+        user_resp = cognito_client.list_users(
+            UserPoolId=COGNITO_USER_POOL_ID,
+            Filter=f'email = "{request.email}"'
+        )
+        users = user_resp.get("Users", [])
+        if not users:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
+        username = users[0]["Username"]
+        auth_resp = cognito_client.initiate_auth(
+            ClientId=COGNITO_CLIENT_ID,
+            AuthFlow="USER_PASSWORD_AUTH",
+            AuthParameters={
+                "USERNAME": username,
+                "PASSWORD": request.password
+            }
+        )
+        access_token = auth_resp["AuthenticationResult"]["AccessToken"]
+        logger.info(f"User logged in via Cognito: {request.email} (username: {username})")
+        return TokenResponse(access_token=access_token, token_type="bearer")
+    except cognito_client.exceptions.NotAuthorizedException:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    except cognito_client.exceptions.UserNotConfirmedException:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account not confirmed. Please check your email."
+        )
+    except ClientError as e:
+        logger.error(f"Cognito login error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Login failed"
+            detail=f"Login failed: {str(e)}"
         ) 
