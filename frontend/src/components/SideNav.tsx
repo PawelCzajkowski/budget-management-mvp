@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { budgetApi } from '../api/routes';
+import Login from './Login';
 
 interface BudgetNavItem {
   id: string;
@@ -73,21 +74,7 @@ const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName
           {dropdownOpen && (
             <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 w-42 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-4 flex flex-col items-center">
               <div className="mb-2 text-gray-800 font-semibold truncate w-full text-center">{userName}</div>
-              {onLogin ? (
-                <a
-                  onClick={onLogin}
-                  className="font-semibold mt-2 cursor-pointer"
-                >
-                  Login
-                </a>
-              ) : (
-                <a
-                  onClick={onLogout}
-                  className="font-semibold mt-2 cursor-pointer"
-                >
-                  Logout
-                </a>
-              )}
+              <Login />
             </div>
           )}
         </div>

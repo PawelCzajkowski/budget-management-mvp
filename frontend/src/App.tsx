@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import FileUpload from './components/FileUpload'
 import type { Budget, ComplexBudgetDTO } from './types/Budget'
-import { budgetApi } from './api/routes'
+import { budgetApi, setApiAuthToken } from './api/routes'
 import type { ApiError } from './api/routes'
 import { mapRequestToBudget, mapBudgetToComplexBudgetDTO } from './utils/dtoMappers'
 import BudgetTable from './components/BudgetTable'
@@ -14,16 +14,11 @@ import DeleteButton from './components/DeleteButton'
 import Login from './components/Login'
 import HelpModal from './components/HelpModal'
 import HelpButton from './components/HelpButton'
+import { useAuth } from "react-oidc-context";
 
-function getUserEmailFromToken(): string {
-  const token = localStorage.getItem('token');
-  if (!token) return '';
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.email || '';
-  } catch {
-    return '';
-  }
+function getUserNameFromAuth(auth: ReturnType<typeof useAuth>): string {
+  if (!auth.user) return '';
+  return auth.user.profile.name || '';
 }
 
 function App() {
@@ -37,10 +32,15 @@ function App() {
   const [sideNavKey, setSideNavKey] = useState<number>(0)
   const [showNewBudgetModal, setShowNewBudgetModal] = useState(false);
   const [newBudgetPeriods, setNewBudgetPeriods] = useState<number>(1);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem('token'));
-  const [userEmail, setUserEmail] = useState<string>(getUserEmailFromToken());
+  const [userName, setUserName] = useState<string>('');
   const [helpOpen, setHelpOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const auth = useAuth();
+
+  useEffect(() => {
+    setUserName(getUserNameFromAuth(auth));
+  }, [auth.user]);
 
   useEffect(() => {
     if (saveSuccess) {
@@ -55,6 +55,10 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [deleteSuccess])
+
+  useEffect(() => {
+    setApiAuthToken(auth.user?.access_token ?? null);
+  }, [auth.user]);
 
   const handleDataReceived = async (data: ComplexBudgetDTO) => {
     try {
@@ -148,23 +152,20 @@ function App() {
   };
 
   // Open login modal handler
-  const openLoginModal = () => setShowLoginModal(true);
+  const openLoginModal = () => {
+    auth.signinRedirect();
+  }
 
   // Called when login is successful
   const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-    setUserEmail(getUserEmailFromToken());
     setShowLoginModal(false);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setUserEmail('');
     window.location.reload();
   };
 
-  if (!isAuthenticated) {
+  if (!auth.isAuthenticated) {
     return (
       <div className="flex min-h-screen w-screen bg-white">
         {/* Help Button and Modal (always visible) */}
@@ -174,10 +175,10 @@ function App() {
           key={sideNavKey}
           onBudgetSelect={handleBudgetSelect}
           onAddBudget={handleAddBudget}
-          userName={userEmail}
+          userName={userName}
           onLogout={() => {}} // No logout for logged-out users
           onLogin={openLoginModal}
-          isAuthenticated={isAuthenticated}
+          isAuthenticated={auth.isAuthenticated}
         />
         <main className="flex-1 flex flex-col items-center min-h-screen">
           {/* Login Modal */}
@@ -192,7 +193,7 @@ function App() {
                   ×
                 </button>
                 <div className="px-8 py-8">
-                  <Login onLogin={handleLoginSuccess} />
+                  <Login />
                 </div>
               </div>
             </div>
@@ -239,25 +240,25 @@ function App() {
                   <SaveButton
                     onClick={handleSave}
                     saving={saving}
-                    disabled={!isAuthenticated || !editing}
-                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                    disabled={!auth.isAuthenticated || !editing}
+                    tooltip={!auth.isAuthenticated ? 'You need to log in' : undefined}
                   />
                   <DeleteButton
                     onClick={handleDelete}
                     processing={deleting}
-                    disabled={!isAuthenticated}
-                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                    disabled={!auth.isAuthenticated}
+                    tooltip={!auth.isAuthenticated ? 'You need to log in' : undefined}
                   />
                 </span>
               </span>
-              {editing && <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={isAuthenticated} />}
+              {editing && <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} />}
               {!editing && <BudgetTable budget={budget} />}
             </>
           )}
           {!budget && (
             <>
               <div className="app">
-                <Login onLogin={handleLoginSuccess} />
+                <Login />
               </div>
               <div className="text-gray-400 text-ld">- or -</div>
               <FileUpload onDataReceived={handleDataReceived} />
@@ -277,9 +278,9 @@ function App() {
         key={sideNavKey}
         onBudgetSelect={handleBudgetSelect}
         onAddBudget={handleAddBudget}
-        userName={userEmail}
+        userName={userName}
         onLogout={handleLogout}
-        isAuthenticated={isAuthenticated}
+        isAuthenticated={auth.isAuthenticated}
       />
       <main className="flex-1">
         <div className="app">
@@ -298,14 +299,14 @@ function App() {
                   <SaveButton
                     onClick={handleSave}
                     saving={saving}
-                    disabled={!isAuthenticated || !editing}
-                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                    disabled={!auth.isAuthenticated || !editing}
+                    tooltip={!auth.isAuthenticated ? 'You need to log in' : undefined}
                   />
                   <DeleteButton
                     onClick={handleDelete}
                     processing={deleting}
-                    disabled={!isAuthenticated}
-                    tooltip={!isAuthenticated ? 'You need to log in' : undefined}
+                    disabled={!auth.isAuthenticated}
+                    tooltip={!auth.isAuthenticated ? 'You need to log in' : undefined}
                   />
                 </span>
               </span>
@@ -351,7 +352,7 @@ function App() {
           )}
           {budget && !editing && <BudgetTable budget={budget} />}
           {budget && editing && (<>
-            <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={isAuthenticated} />
+            <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} />
           </>
           )}
         </div>

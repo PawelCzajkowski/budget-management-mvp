@@ -1,9 +1,6 @@
 import axios, { HttpStatusCode } from 'axios';
 import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
-import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../types/Auth';
-import { AWS_CONFIG } from '../config/aws';
 
-// You might want to move this to an environment variable
 const API_BASE_URL = 'http://localhost:8888';
 
 const api = axios.create({
@@ -13,18 +10,17 @@ const api = axios.create({
   },
 });
 
-// Mock credentials - in a real app, this would come from auth context/service
-const mockCredentials = {
-  user_id: 'mock_user_id',
-  token: 'mock_token',
-};
+let currentToken: string | null = null;
+
+export function setApiAuthToken(token: string | null) {
+  currentToken = token;
+}
 
 // Attach JWT token to all requests if present
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
+  if (currentToken) {
     config.headers = config.headers || {};
-    config.headers['Authorization'] = `Bearer ${token}`;
+    config.headers['Authorization'] = `Bearer ${currentToken}`;
   }
   return config;
 });
@@ -34,11 +30,7 @@ export const budgetApi = {
    * Get all budget IDs for the current user
    */
   getAllBudgetIds: async (): Promise<{ id: string; title: string }[]> => {
-    const response = await api.get('/budgets', {
-      headers: {
-        Authorization: `Bearer ${mockCredentials.token}`,
-      },
-    });
+    const response = await api.get('/budgets');
     return response.data;
   },
 
@@ -46,11 +38,7 @@ export const budgetApi = {
    * Create a new budget
    */
   createBudget: async (budget: ComplexBudgetDTO): Promise<HttpStatusCode> => {
-    const response = await api.post('/budgets', budget, {
-      headers: {
-        Authorization: `Bearer ${mockCredentials.token}`,
-      },
-    });
+    const response = await api.post('/budgets', budget);
     return response.status;
   },
 
@@ -60,7 +48,6 @@ export const budgetApi = {
   importCsvBudget: async (file: File): Promise<BudgetDTO> => {
     const formData = new FormData();
     formData.append('file', file);
-
     const response = await api.post('/budgets/import-csv', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -73,11 +60,7 @@ export const budgetApi = {
    * Get a specific budget by ID
    */
   getBudget: async (budgetId: string): Promise<ComplexBudgetDTO> => {
-    const response = await api.get(`/budgets/${budgetId}`, {
-      headers: {
-        Authorization: `Bearer ${mockCredentials.token}`,
-      },
-    });
+    const response = await api.get(`/budgets/${budgetId}`);
     return response.data;
   },
 
@@ -85,11 +68,7 @@ export const budgetApi = {
    * Delete a budget by ID
    */
   deleteBudget: async (budgetId: string): Promise<HttpStatusCode> => {
-    const response = await api.delete(`/budgets/${budgetId}`, {
-      headers: {
-        Authorization: `Bearer ${mockCredentials.token}`,
-      },
-    });
+    const response = await api.delete(`/budgets/${budgetId}`);
     return response.status;
   },
 
@@ -97,22 +76,14 @@ export const budgetApi = {
    * Update an existing budget by ID
    */
   updateBudget: async (budgetId: string, budget: ComplexBudgetDTO): Promise<void> => {
-    await api.put(`/budgets/${budgetId}`, budget, {
-      headers: {
-        Authorization: `Bearer ${mockCredentials.token}`,
-      },
-    });
+    await api.put(`/budgets/${budgetId}`, budget);
   },
 
   /**
    * Validate period mismatch and get possible actions
    */
   validatePeriodMismatch: async (payload: any): Promise<any> => {
-    const response = await api.post('/budgets/validate-period-mismatch', payload, {
-      headers: {
-        Authorization: `Bearer ${mockCredentials.token}`,
-      },
-    });
+    const response = await api.post('/budgets/validate-period-mismatch', payload);
     return response.data;
   },
 
@@ -120,23 +91,9 @@ export const budgetApi = {
    * Apply period corrections (move, savings, etc.)
    */
   applyPeriodCorrections: async (payload: any): Promise<any> => {
-    const response = await api.post('/budgets/apply-period-corrections', payload, {
-      headers: {
-        Authorization: `Bearer ${mockCredentials.token}`,
-      },
-    });
+    const response = await api.post('/budgets/apply-period-corrections', payload);
     return response.data;
   },
-};
-
-export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-  const response = await api.post<LoginResponse>('/auth/login', data);
-  return response.data;
-};
-
-export const register = async (data: RegisterRequest): Promise<RegisterResponse> => {
-  const response = await api.post<RegisterResponse>('/auth/register', data);
-  return response.data;
 };
 
 // Error handling types

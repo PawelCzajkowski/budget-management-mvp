@@ -1,128 +1,40 @@
-import React, { useState } from 'react';
-import { login, register } from '../api/routes';
-import type { LoginRequest, RegisterRequest, RegisterResponse } from '../types/Auth';
+import React from 'react';
+import { useAuth } from 'react-oidc-context';
 
-const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [registerSuccess, setRegisterSuccess] = useState<string | null>(null);
+const Login: React.FC = () => {
+  const auth = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setRegisterSuccess(null);
-    try {
-      if (mode === 'login') {
-        const data: LoginRequest = { email, password };
-        const res = await login(data);
-        localStorage.setItem('token', res.access_token);
-        onLogin();
-      } else {
-        const data: RegisterRequest = { username, email, password };
-        const res: RegisterResponse = await register(data);
-        setRegisterSuccess(res.message || 'Registration successful! Please log in.');
-        setMode('login');
-        setUsername('');
-        setEmail('');
-        setPassword('');
-      }
-    } catch (err) {
-      setError(mode === 'login' ? 'Invalid credentials or server error.' : 'Registration failed.');
-    } finally {
-      setLoading(false);
-    }
+  const signOutRedirect = () => {
+    const clientId = "1tc5uofjkv4cjbk336vmgp9evr";
+    const logoutUri = "http://localhost:5173/";
+    const cognitoDomain = "https://eu-north-1fz1hepl5w.auth.eu-north-1.amazoncognito.com";
+    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
-  return (
-    <div className="flex items-center justify-center">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          {mode === 'login' ? 'Login' : 'Register'}
-        </h2>
-        {registerSuccess && (
-          <div className="mb-4 text-green-600">{registerSuccess}</div>
-        )}
-        {error && <div className="mb-4 text-red-500">{error}</div>}
-        {mode === 'register' && (
-          <div className="mb-4">
-            <label className="block mb-1 font-medium">Username</label>
-            <input
-              type="text"
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              required
-            />
-          </div>
-        )}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Email</label>
-          <input
-            type="email"
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-6">
-          <label className="block mb-1 font-medium">Password</label>
-          <input
-            type="password"
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </div>
+  if (auth.isLoading) return <div>Loading...</div>;
+  if (auth.error) return <div>Encountering error... {auth.error.message}</div>;
+
+  if (auth.isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center">
         <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-          disabled={loading}
+          className="px-4 py-2 rounded font-semibold shadow transition-colors bg-blue-500 hover:bg-blue-700 text-white"
+          onClick={() => auth.removeUser()}
         >
-          {loading ? (mode === 'login' ? 'Logging in...' : 'Registering...') : (mode === 'login' ? 'Login' : 'Register')}
+          Sign out
         </button>
-        <div className="mt-4 text-center">
-          {mode === 'login' ? (
-            <span>
-              Don't have an account?{' '}
-              <button
-                type="button"
-                className="text-blue-600 hover:underline"
-                onClick={() => {
-                  setMode('register');
-                  setError(null);
-                  setRegisterSuccess(null);
-                }}
-              >
-                Register
-              </button>
-            </span>
-          ) : (
-            <span>
-              Already have an account?{' '}
-              <button
-                type="button"
-                className="text-blue-600 hover:underline"
-                onClick={() => {
-                  setMode('login');
-                  setError(null);
-                }}
-              >
-                Login
-              </button>
-            </span>
-          )}
-        </div>
-      </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <button
+        className="px-4 py-2 rounded font-semibold shadow transition-colors bg-blue-500 hover:bg-blue-700 text-white"
+        onClick={() => auth.signinRedirect()}
+      >
+        Sign in
+      </button>
     </div>
   );
 };
