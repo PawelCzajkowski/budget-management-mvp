@@ -20,24 +20,17 @@ class BudgetRepository:
         self.table_name = os.getenv('DYNAMODB_TABLE_NAME', 'budget-management-mvp-budgets')
         REGION = os.getenv('AWS_REGION', 'eu-north-1')
 
-        # logger.info(f"Initializing DynamoDB with endpoint URL: {endpoint_url} on region {REGION}")
         logger.info(f"Using table name: {self.table_name}")
         
-        # Initialize DynamoDB client and resource
+        # Initialize DynamoDB client and resource for Lambda
         self.dynamodb_client = boto3.client(
             'dynamodb',
-            region_name=REGION,
-            # aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            # aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            # endpoint_url=endpoint_url
+            region_name=REGION
         )
         
         self.dynamodb = boto3.resource(
             'dynamodb',
-            region_name=REGION,
-            # aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            # aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            # endpoint_url=endpoint_url
+            region_name=REGION
         )
         
         # Ensure table exists

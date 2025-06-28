@@ -4,4 +4,7 @@ pydantic==2.8.2
 python-jose[cryptography]
 boto3
 mangum
-requests 
+requests
+langchain
+langchain-openai
+python-dotenv 

@@ -1,19 +1,14 @@
 import os
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from services.AI_Service import extract_budget_from_csv
 from controllers import BudgetController
-from controllers.AuthController import router as auth_router
 from mangum import Mangum
 
-AWS_REGION = os.getenv("AWS_REGION") # Domyślnie dla lokalnego
-# DYNAMODB_ENDPOINT_URL = os.getenv("DYNAMODB_ENDPOINT_URL", "http://localhost:5555") # Domyślnie dla lokalnego
-DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME") # Domyślnie dla lokalnego
-
+# Environment variables for AWS Lambda
+AWS_REGION = os.getenv("AWS_REGION")
+DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
-COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID") # Często niepotrzebne w backendzie do weryfikacji, ale warto mieć dla spójności
-
 
 app = FastAPI(
     title="Budget Management API",
@@ -21,10 +16,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS
+# Configure CORS for Lambda deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Configure with specific origins in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,9 +27,6 @@ app.add_middleware(
 
 # Include routers
 app.include_router(BudgetController.router, prefix="/budgets", tags=["budgets"])
-app.include_router(auth_router)
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8888)
-
+# Lambda handler for AWS Lambda deployment
 handler = Mangum(app)
