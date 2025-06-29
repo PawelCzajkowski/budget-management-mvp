@@ -16,12 +16,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+origins = [
+    "http://localhost:5173",
+    # W przyszłości dodasz tutaj URL Twojego CloudFront:
+    # "https://d84l1y8p4kdic.cloudfront.net"
+]
+
 # Configure CORS for Lambda deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure with specific origins in production
+    allow_origins=origins,  # Configure with specific origins in production
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
