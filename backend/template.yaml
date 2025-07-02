@@ -1,0 +1,246 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Budget Management API - FastAPI Lambda deployment
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.12
+
+Parameters:
+  UserPoolId:
+    Type: String
+    Description: The ID of your Cognito User Pool (e.g., eu-north-1_xxxxxxxx)
+    Default: eu-north-1_fz1hEPl5w
+  ClientId:
+    Type: String
+    Description: The Client ID for your Cognito App Client
+    Default: 1tc5uofjkv4cjbk336vmgp9evr
+
+Resources:
+  # Mock function for OPTIONS requests
+  CorsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs18.x
+      InlineCode: |
+        exports.handler = async (event) => {
+          console.log('CORS handler event:', JSON.stringify(event));
+          return {
+            statusCode: 200,
+            headers: {
+              'Access-Control-Allow-Origin': 'http://localhost:5173',
+              'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+              'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD',
+              'Access-Control-Allow-Credentials': 'true'
+            },
+            body: ''
+          };
+        };
+
+  BudgetManagementFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src.main.handler
+      Environment:
+        Variables:
+          PYTHONPATH: /var/task
+          DYNAMODB_TABLE_NAME: budget-management-mvp-budgets
+          COGNITO_USER_POOL_ID: !Ref UserPoolId
+          COGNITO_CLIENT_ID: !Ref ClientId
+          ALLOWED_ORIGINS: "http://localhost:5173"
+          LOG_LEVEL: "DEBUG"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: budget-management-mvp-budgets
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: '*'
+
+  # Create API Gateway
+  BudgetManagementRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: budget-management-api
+      Description: Budget Management API
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      BinaryMediaTypes:
+        - '*/*'
+
+  # Create proxy resource
+  ProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref BudgetManagementRestApi
+      ParentId: !GetAtt BudgetManagementRestApi.RootResourceId
+      PathPart: '{proxy+}'
+
+  # Create OPTIONS method for CORS on proxy resource
+  OptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref BudgetManagementRestApi
+      ResourceId: !Ref ProxyResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CorsFunction.Arn}/invocations
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+
+  # Create ANY method for main function on proxy resource
+  AnyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref BudgetManagementRestApi
+      ResourceId: !Ref ProxyResource
+      HttpMethod: ANY
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BudgetManagementFunction.Arn}/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'http://localhost:5173'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Credentials: true
+
+  # Create OPTIONS method for CORS on root resource
+  RootOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref BudgetManagementRestApi
+      ResourceId: !GetAtt BudgetManagementRestApi.RootResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CorsFunction.Arn}/invocations
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Credentials: true
+
+  # Create ANY method for root resource
+  RootAnyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref BudgetManagementRestApi
+      ResourceId: !GetAtt BudgetManagementRestApi.RootResourceId
+      HttpMethod: ANY
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BudgetManagementFunction.Arn}/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        IntegrationResponses:
+          - StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'http://localhost:5173'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseModels:
+            application/json: 'Empty'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Credentials: true
+
+  # Create Cognito Authorizer
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: CognitoAuthorizer
+      RestApiId: !Ref BudgetManagementRestApi
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      ProviderARNs:
+        - !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+
+  # Create API Gateway Deployment
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - OptionsMethod
+      - AnyMethod
+      - RootOptionsMethod
+      - RootAnyMethod
+    Properties:
+      RestApiId: !Ref BudgetManagementRestApi
+      StageName: budgets
+
+  # Permission for API Gateway to invoke the Lambda function
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref BudgetManagementFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BudgetManagementRestApi}/*/*
+
+  # Permission for API Gateway to invoke the CORS function
+  CorsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CorsFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BudgetManagementRestApi}/*/*
+
+Outputs:
+  BudgetManagementApiUrl:
+    Description: "API Gateway endpoint URL for Budget Management API"
+    Value: !Sub "https://${BudgetManagementRestApi}.execute-api.${AWS::Region}.amazonaws.com/budgets/"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiUrl"
+
+  BudgetManagementFunctionArn:
+    Description: "Budget Management Lambda Function ARN"
+    Value: !GetAtt BudgetManagementFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-FunctionArn"
