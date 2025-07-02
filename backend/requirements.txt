@@ -1,7 +1,6 @@
 # Core web framework
 fastapi==0.104.1
 python-multipart==0.0.6
-pydantic==2.8.2
 
 # Authentication
 python-jose[cryptography]==3.3.0
@@ -13,13 +12,20 @@ mangum==0.19.0
 # HTTP requests
 requests==2.31.0
 
-# AI/ML
-# LangChain ecosystem (chat models, core abstractions, OpenAI integration)
-langchain>=0.3.0,<0.4
-langchain-core>=0.3.0,<0.4
-langchain-openai>=0.2.0,<0.3
-orjson>=3.10.18
+# Data Processing
+pandas==2.0.3
+numpy==1.24.4
+pydantic>=2.5.0
+
+# CSV Processing
+chardet==5.2.0
+
+# AI/ML Libraries - Using compatible versions
+langchain>=0.3.0
+langchain-core>=0.3.20
+langchain-openai>=0.2.0
+langchain-community>=0.2.0
+openai>=1.25.0
 
 # Utilities
-python-dotenv==1.0.0
-chardet==5.2.0 
+python-dotenv==1.0.0 
