@@ -1,1 +1,1 @@
-from backend.src.controllers.AuthController import router as auth_router 
+# Make routers directory a proper Python package

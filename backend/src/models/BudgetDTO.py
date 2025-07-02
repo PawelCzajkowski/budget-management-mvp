@@ -1,7 +1,7 @@
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
-from models.Budget import Budget
+from src.models.Budget import Budget
 
 
 class ExpenseDTO(BaseModel):
