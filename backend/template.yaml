@@ -220,7 +220,7 @@ Resources:
         - !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
 
   # Create API Gateway Deployment
-  ApiGatewayDeployment:
+  ApiGatewayDeploymentV1:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - OptionsMethod
@@ -229,7 +229,7 @@ Resources:
       - RootAnyMethod
     Properties:
       RestApiId: !Ref BudgetManagementRestApi
-      StageName: budgets
+      StageName: v1
 
   # Permission for API Gateway to invoke the Lambda function
   LambdaPermission:
@@ -252,7 +252,7 @@ Resources:
 Outputs:
   BudgetManagementApiUrl:
     Description: "API Gateway endpoint URL for Budget Management API"
-    Value: !Sub "https://${BudgetManagementRestApi}.execute-api.${AWS::Region}.amazonaws.com/budgets/"
+    Value: !Sub "https://${BudgetManagementRestApi}.execute-api.${AWS::Region}.amazonaws.com/v1/"
     Export:
       Name: !Sub "${AWS::StackName}-ApiUrl"
 
