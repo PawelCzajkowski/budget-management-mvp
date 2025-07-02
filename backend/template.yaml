@@ -6,7 +6,7 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 512
-    Runtime: python3.12
+    Runtime: python3.11
 
 Parameters:
   UserPoolId:
@@ -17,6 +17,18 @@ Parameters:
     Type: String
     Description: The Client ID for your Cognito App Client
     Default: 1tc5uofjkv4cjbk336vmgp9evr
+  OpenAIApiKey:
+    Type: String
+    Description: API key for OpenAI
+    NoEcho: true
+  LangSmithApiKey:
+    Type: String
+    Description: API key for LangSmith
+    NoEcho: true
+  LangSmithProject:
+    Type: String
+    Description: Project name for LangSmith
+    Default: budget-management-mvp
 
 Resources:
   # Mock function for OPTIONS requests
@@ -47,12 +59,17 @@ Resources:
       Handler: src.main.handler
       Environment:
         Variables:
-          PYTHONPATH: /var/task
+          PYTHONPATH: /var/task:/var/task/src
           DYNAMODB_TABLE_NAME: budget-management-mvp-budgets
           COGNITO_USER_POOL_ID: !Ref UserPoolId
           COGNITO_CLIENT_ID: !Ref ClientId
           ALLOWED_ORIGINS: "http://localhost:5173"
           LOG_LEVEL: "DEBUG"
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
+          LANGCHAIN_API_KEY: !Ref LangSmithApiKey
+          LANGCHAIN_PROJECT: !Ref LangSmithProject
+          LANGSMITH_TRACING: "true"
       Policies:
         - DynamoDBCrudPolicy:
             TableName: budget-management-mvp-budgets
