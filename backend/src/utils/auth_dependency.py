@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from src.utils.jwt_utils import verify_jwt_token
+from utils.jwt_utils import verify_jwt_token
 import logging
 
 logger = logging.getLogger(__name__)

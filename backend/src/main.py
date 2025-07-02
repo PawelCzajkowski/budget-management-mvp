@@ -1,12 +1,11 @@
 import os
 import sys
-from fastapi import FastAPI, Request, Response, Depends
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, JSONResponse
-from src.services.AI_Service import extract_budget_from_csv
-from src.controllers import BudgetController
-from src.utils.auth_dependency import get_current_user
-import src.services.BudgetService as budget_service
+from controllers import BudgetController
+from utils.auth_dependency import get_current_user
+import services.BudgetService as budget_service
 from mangum import Mangum
 import logging
 
