@@ -11,12 +11,12 @@ interface SideNavProps {
   onBudgetSelect: (budgetId: string) => void;
   onAddBudget: () => void;
   userName: string;
-  onLogout: () => void;
+  onLogout?: () => void;
   onLogin?: () => void;
   isAuthenticated: boolean;
 }
 
-const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName, onLogout, onLogin, isAuthenticated }) => {
+const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName, isAuthenticated }) => {
   const [budgets, setBudgets] = useState<BudgetNavItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ const SideNav: React.FC<SideNavProps> = ({ onBudgetSelect, onAddBudget, userName
         setBudgets(data.map(({ id, title }) => ({ id, title })));
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(() => {
         setError('Failed to load budgets');
         setLoading(false);
       });

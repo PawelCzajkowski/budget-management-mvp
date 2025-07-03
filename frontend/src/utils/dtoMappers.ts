@@ -10,17 +10,6 @@ export const mapRequestToBudget = (request: ComplexBudgetDTO): Budget => {
   };
 };
 
-const mapBudgetDTOtoBudgetData = (dto: BudgetDTO): Budget => {
-  return {
-    id: dto.id || '',
-    title: dto.title || '',
-    description: dto.description || '',
-    list_of_budget_items: dto.list_of_budget_items.map((item: BudgetItemDTO) => 
-        mapBudgetItemDTOtoBudgetItem(item)),
-    period_names: dto.period_names || []
-  };
-};
-
 const mapExpenseDTOtoExpense = (expense: ExpenseDTO): Expense => ({
     name: expense.name || '',
     owner: expense.owner || '',

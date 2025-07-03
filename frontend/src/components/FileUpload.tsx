@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
-import mockData from '../../mock/get-complex-budget.json';
 import { budgetApi } from '../api/routes';
 import type { ApiError } from '../api/routes';
 
@@ -26,20 +25,6 @@ const FileUpload = ({ onDataReceived }: FileUploadProps) => {
       const apiError = err as ApiError;
       setError(apiError.message || 'Error loading data. Please try again.');
       console.error('Error:', apiError);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUseMockData = () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      onDataReceived(mockData);
-    } catch (err) {
-      setError('Error loading mock data. Please try again.');
-      console.error('Error:', err);
     } finally {
       setLoading(false);
     }

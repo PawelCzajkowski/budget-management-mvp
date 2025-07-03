@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, UserPlus, Upload, Table, PlusCircle, ListChecks, CheckCircle2, Trash2, LogOut, Lightbulb } from 'lucide-react';
+import { Info, UserPlus, Upload, Table, PlusCircle, ListChecks, CheckCircle2, LogOut, Lightbulb } from 'lucide-react';
 
 interface HelpModalProps {
   open: boolean;

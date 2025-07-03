@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, DollarSign, User, CreditCard } from 'lucide-react';
+import { ChevronDown, ChevronRight, User } from 'lucide-react';
 import type { Budget, Expense, Period, BudgetItem } from '../types/Budget';
 
 type ExpenseDropdownProps = {
@@ -56,10 +56,6 @@ const BudgetTable = ({ budget }: { budget: Budget }) => {
       ...prev,
       [key]: !prev[key]
     }));
-  };
-
-  const formatCurrency = (amount: string) => {
-    return `$${parseFloat(amount).toLocaleString()}`;
   };
 
   return (

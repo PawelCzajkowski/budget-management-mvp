@@ -156,11 +156,6 @@ function App() {
     auth.signinRedirect();
   }
 
-  // Called when login is successful
-  const handleLoginSuccess = () => {
-    setShowLoginModal(false);
-  };
-
   const handleLogout = () => {
     window.location.reload();
   };

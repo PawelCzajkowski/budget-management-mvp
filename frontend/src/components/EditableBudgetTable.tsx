@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Budget, Expense } from '../types/Budget';
-import { ChevronDown, ChevronRight, DollarSign, User, CreditCard, Trash2, CircleX, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trash2, CircleX, AlertCircle } from 'lucide-react';
 import BudgetCorrectionModal from './BudgetCorrectionModal';
 import type { ActionOptionDTO } from './BudgetCorrectionModal';
 import { budgetApi } from '../api/routes';
@@ -47,12 +47,6 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, onSave, type = 'text
 
   const handleBlur = () => {
     handleSave();
-  };
-
-  const formatCurrency = (amount: string | number): string => {
-    let num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(num)) num = 0;
-    return num.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
   };
 
   if (isEditing) {
@@ -127,12 +121,6 @@ const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudg
     // eslint-disable-next-line
   }, [budgetData]);
 
-  const formatCurrency = (amount: string | number): string => {
-    let num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(num)) num = 0;
-    return num.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
-  };
-
   const toggleExpanded = (itemIndex: number, periodIndex: number) => {
     const key = `${itemIndex}-${periodIndex}`;
     setExpandedCells(prev => ({
@@ -156,41 +144,6 @@ const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudg
       ...prev,
       [`${itemIndex}-${periodIndex}`]: plannedAmount !== expensesSum
     }));
-  };
-
-  // Helper to trigger correction modal if mismatch
-  const handlePeriodOrExpenseEdit = async (itemIndex: number, periodIndex: number) => {
-    const period = budgetData.list_of_budget_items[itemIndex].periods[periodIndex];
-    const plannedAmount = parseFloat(period.planned_amount);
-    const expensesSum = period.expense_list.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
-
-    if (plannedAmount !== expensesSum) {
-      // Prepare payload for validation API
-      const payload = {
-        budget_id: budgetData.id,
-        period_id: period.label,
-        planned_amount: plannedAmount,
-        expenses: period.expense_list.map(exp => ({
-          expense_id: exp.id || '',
-          amount: parseFloat(exp.amount),
-        })),
-        all_periods: budgetData.period_names.map((name, idx) => ({
-          period_id: name,
-          planned_amount: parseFloat(
-            budgetData.list_of_budget_items[itemIndex].periods[idx]?.planned_amount || '0'
-          ),
-        })),
-      };
-      try {
-        const result = await budgetApi.validatePeriodMismatch(payload);
-        setCorrectionActions(result.actions);
-        setCorrectionSummary(result.summary);
-        setCorrectionContext({ itemIndex, periodIndex });
-        setCorrectionModalOpen(true);
-      } catch (err) {
-        // Optionally handle error
-      }
-    }
   };
 
   // Correction modal handlers
@@ -364,26 +317,7 @@ const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudg
                   />
                   
                   <div className="flex items-center gap-4 mt-1 text-gray-600 flex-wrap">
-                    {/* <div className="flex items-center gap-1">
-                      <User size={12} />
-                      <EditableCell
-                        value={expense.owner ?? ''}
-                        onSave={(value) => handleCellEdit({ type: 'expense', itemIndex, periodIndex, expenseIndex: idx, field: 'owner' }, value)}
-                        cellId={`expense-${itemIndex}-${periodIndex}-${idx}-owner`}
-                        className="min-w-20"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <CreditCard size={12} />
-                      <EditableCell
-                        value={expense.account_number}
-                        onSave={(value) => handleCellEdit({ type: 'expense', itemIndex, periodIndex, expenseIndex: idx, field: 'account_number' }, value)}
-                        cellId={`expense-${itemIndex}-${periodIndex}-${idx}-account`}
-                        className="min-w-24"
-                      />
-                    </div> */}
                     <div className="flex items-center gap-1 font-medium text-green-600">
-                      {/* <DollarSign size={12} /> */}
                       <EditableCell
                         value={expense.amount}
                         onSave={(value) => handleCellEdit({ type: 'expense', itemIndex, periodIndex, expenseIndex: idx, field: 'amount' }, value)}
@@ -552,7 +486,6 @@ const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudg
                 </td>
                 <td className="px-6 py-4 border-b">
                   <div className="flex items-center gap-2">
-                    <User size={16} className="text-gray-400" />
                     <EditableCell
                       value={item.owner ?? ''}
                       onSave={(value) => handleCellEdit({ type: 'budgetItem', itemIndex, field: 'owner' }, value)}

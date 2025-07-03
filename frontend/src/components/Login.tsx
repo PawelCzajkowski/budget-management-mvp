@@ -4,13 +4,6 @@ import { useAuth } from 'react-oidc-context';
 const Login: React.FC = () => {
   const auth = useAuth();
 
-  const signOutRedirect = () => {
-    const clientId = "1tc5uofjkv4cjbk336vmgp9evr";
-    const logoutUri = "http://localhost:5173/";
-    const cognitoDomain = "https://eu-north-1fz1hepl5w.auth.eu-north-1.amazoncognito.com";
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-  };
-
   if (auth.isLoading) return <div>Loading...</div>;
   if (auth.error) return <div>Encountering error... {auth.error.message}</div>;
 
