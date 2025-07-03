@@ -1,8 +1,13 @@
 import axios, { HttpStatusCode } from 'axios';
 import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
 
-// const API_BASE_URL = 'http://localhost:8888';
-const API_BASE_URL = 'https://7bt2ch2nna.execute-api.eu-north-1.amazonaws.com/v1';
+// Get API base URL from environment variables or use default
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://7bt2ch2nna.execute-api.eu-north-1.amazonaws.com/v1';
+
+// Log API URL in development mode
+if (import.meta.env.DEV) {
+  console.log('API Base URL:', API_BASE_URL);
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,

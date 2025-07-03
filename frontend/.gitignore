@@ -7,10 +7,35 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Build files
 node_modules
 dist
 dist-ssr
 *.local
+
+# TypeScript build info
+*.tsbuildinfo
+.tsbuildinfo
+tsconfig.tsbuildinfo
+tsconfig.*.tsbuildinfo
+
+# Generated files
+vite.config.js
+vite.config.d.ts
+*.js.map
+*.d.ts.map
+
+# Cache directories
+.vite
+.rollup.cache
+.eslintcache
+.npm
+.cache
+
+# Environment files
+.env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*
