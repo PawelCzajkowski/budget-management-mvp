@@ -57,7 +57,7 @@ function App() {
   }, [deleteSuccess])
 
   useEffect(() => {
-    setApiAuthToken(auth.user?.access_token ?? null);
+    setApiAuthToken(auth.user?.id_token ?? null);
   }, [auth.user]);
 
   const handleDataReceived = async (data: ComplexBudgetDTO) => {

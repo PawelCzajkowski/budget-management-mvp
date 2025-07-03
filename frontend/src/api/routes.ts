@@ -1,7 +1,8 @@
 import axios, { HttpStatusCode } from 'axios';
 import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
 
-const API_BASE_URL = 'http://localhost:8888';
+// const API_BASE_URL = 'http://localhost:8888';
+const API_BASE_URL = 'https://7bt2ch2nna.execute-api.eu-north-1.amazonaws.com/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
