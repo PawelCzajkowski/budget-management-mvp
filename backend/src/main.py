@@ -13,22 +13,12 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Debug prints for Lambda troubleshooting
-print("Python Path:", sys.path)
-print("Current directory:", os.getcwd())
-print("Directory contents:", os.listdir())
-print("Environment variables:", dict(os.environ))
-
 # Environment variables for AWS Lambda
 AWS_REGION = os.getenv("AWS_REGION")
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").strip("'")
-
-print(f"ALLOWED_ORIGINS: {ALLOWED_ORIGINS}")
-print(f"COGNITO_USER_POOL_ID: {COGNITO_USER_POOL_ID}")
-print(f"COGNITO_CLIENT_ID: {COGNITO_CLIENT_ID}")
 
 app = FastAPI(
     title="Budget Management API",
