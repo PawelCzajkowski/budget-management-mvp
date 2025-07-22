@@ -24,6 +24,9 @@ vite.config.js
 vite.config.d.ts
 *.js.map
 *.d.ts.map
+*.d.ts
+/src/components/**/*.d.ts
+/src/components/**/*.js
 
 # Cache directories
 .vite
