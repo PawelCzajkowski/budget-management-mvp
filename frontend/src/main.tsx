@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css'
 import App from './App'
 import { AuthProvider } from "react-oidc-context";
+import { BrowserRouter } from 'react-router-dom';
 
 const onSigninCallback = () => {
   // Remove the query parameters from the URL
@@ -38,7 +39,9 @@ if (import.meta.env.DEV) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AuthProvider {...oidcConfig}>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </AuthProvider>
   </React.StrictMode>
 );

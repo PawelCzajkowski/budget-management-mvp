@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import FileUpload from './components/FileUpload'
+import { Routes, Route } from 'react-router-dom'
 import type { Budget, ComplexBudgetDTO } from './types/Budget'
 import { budgetApi, setApiAuthToken } from './api/routes'
 import type { ApiError } from './api/routes'
@@ -15,6 +16,9 @@ import Login from './components/Login'
 import HelpModal from './components/HelpModal'
 import HelpButton from './components/HelpButton'
 import { useAuth } from "react-oidc-context";
+import PrivacyPolicyComponent from './components/PrivacyPolicy'
+import TermsOfServiceComponent from './components/TermsOfService'
+import { Footer } from './components/Footer'
 
 function getUserNameFromAuth(auth: ReturnType<typeof useAuth>): string {
   if (!auth.user) return '';
@@ -176,7 +180,11 @@ function App() {
           isAuthenticated={auth.isAuthenticated}
         />
         <main className="flex-1 flex flex-col items-center min-h-screen">
-          {/* Login Modal */}
+          <Routes>
+            <Route path="/privacy-policy" element={<PrivacyPolicyComponent />} />
+            <Route path="/terms-of-service" element={<TermsOfServiceComponent />} />
+            <Route path="/" element={<>
+              {/* Login Modal */}
           {showLoginModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
               <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-0 max-h-screen border border-blue-200">
@@ -252,6 +260,10 @@ function App() {
           )}
           {!budget && (
             <>
+            <div className="flex items-center justify-center gap-1 text-lg mb-4">
+              <span className="text-gray-500">Using this app you agree to our</span>
+              <Footer />
+            </div>
               <div className="app">
                 <Login />
               </div>
@@ -259,6 +271,8 @@ function App() {
               <FileUpload onDataReceived={handleDataReceived} />
             </>
           )}
+            </>} />
+          </Routes>
         </main>
       </div>
     )
@@ -278,8 +292,12 @@ function App() {
         isAuthenticated={auth.isAuthenticated}
       />
       <main className="flex-1">
-        <div className="app">
-          {budget && (
+        <Routes>
+          <Route path="/privacy-policy" element={<PrivacyPolicyComponent />} />
+          <Route path="/terms-of-service" element={<TermsOfServiceComponent />} />
+          <Route path="/" element={
+            <div className="app">
+              {budget && (
             <>
               <div className="w-full flex justify-center">
                 <p className="text-2xl font-bold mb-4">Budget Management System</p>
@@ -350,7 +368,9 @@ function App() {
             <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} />
           </>
           )}
-        </div>
+            </div>
+          } />
+        </Routes>
       </main>
     </div>
   )
