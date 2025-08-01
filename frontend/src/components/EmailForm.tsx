@@ -6,7 +6,7 @@ import NotificationAlert from './NotificationAlert';
 
 // API configuration
 const API_URL = import.meta.env.PROD
-  ? 'https://27tteku3o4.execute-api.eu-north-1.amazonaws.com/Prod/'
+  ? 'https://27tteku3o4.execute-api.eu-north-1.amazonaws.com/Prod/signup'
   : '/api/signup'; // This will be our mock endpoint
 
 const EmailForm = ({ onClose }: { onClose: () => void }) => {

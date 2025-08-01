@@ -8,7 +8,7 @@
 This Privacy Policy applies to the easybudget.cloud web application (the "Service") operated by:
 
 **Paweł Czajkowski**  
-Email: pawel@datalogue.pl
+Email: pawel@easybudget.cloud
 
 ## 2. Introduction
 
@@ -124,7 +124,7 @@ If you are a California resident, you have the following rights:
 
 We will only send marketing communications with your explicit opt-in consent. You may withdraw this consent at any time by:
 - Clicking the unsubscribe link in marketing emails
-- Contacting us directly at pawel@datalogue.pl
+- Contacting us directly at pawel@easybudget.cloud
 - Updating your preferences in your account settings
 
 ## 11. Data Sharing and Disclosure
@@ -148,7 +148,7 @@ Our Service is not intended for children under 16 years of age. We do not knowin
 ## 14. How to Exercise Your Rights
 
 To exercise your data protection rights, please contact us at:
-- Email: pawel@datalogue.pl
+- Email: pawel@easybudget.cloud
 - Subject Line: "Data Protection Request"
 - Include: Your full name, email address, and specific request
 
@@ -168,7 +168,7 @@ Continued use of the Service after policy changes constitutes acceptance of the 
 If you have questions about this Privacy Policy or our data practices, please contact us at:
 
 **Paweł Czajkowski**  
-Email: pawel@datalogue.pl  
+Email: pawel@easybudget.cloud  
 
 For EU residents, you also have the right to lodge a complaint with your local data protection authority if you believe your rights have been violated.
 

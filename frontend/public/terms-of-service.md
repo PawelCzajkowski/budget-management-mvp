@@ -102,7 +102,7 @@ For questions about these Terms or the Service, please contact us at:
 
 **Paweł Czajkowski**  
 
-Email: pawel@datalogue.pl  
+Email: pawel@easybudget.cloud  
 Contact Form: Available through the easybudget.cloud application or email
 
 ---
