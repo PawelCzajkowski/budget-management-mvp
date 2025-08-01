@@ -38,7 +38,7 @@ This project is a full-stack budget management system under development. It cons
 ## Frontend Strategy
 
 - Use **Axios** for all API requests. API methods should be centralized under `api/`.
-- Use **TailwindCSS** for styling with utility-first design.
+- Use **TailwindCSS** v4 for styling with utility-first design.
 - Follow **Google’s TypeScript style guide**.
 - Global state: start with **React Context API** for minimal shared state; for scalability, migrate to **Zustand** for lightweight, scalable state management.
 - Components should be functional and typed using `React.FC`.
