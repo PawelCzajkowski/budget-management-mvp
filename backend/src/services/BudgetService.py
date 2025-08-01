@@ -140,12 +140,14 @@ def validate_period_mismatch(request: PeriodMismatchValidationRequest, user_id: 
     difference = request.planned_amount - expenses_sum
 
     actions = []
+    # TODO: Implement handing for "pending" expenses
+    # This is commented out because the logic for pending expenses is not implemented yet.
     # Always allow "pending"
-    actions.append(ActionOptionDTO(
-        key="pending",
-        label="Expenses are pending",
-        description="You can wait for more expenses to be added."
-    ))
+    # actions.append(ActionOptionDTO(
+    #     key="pending",
+    #     label="Expenses are pending",
+    #     description="You can wait for more expenses to be added."
+    # ))
 
     # If there are future periods, allow "move"
     future_periods = [p for p in request.all_periods if p.period_id != request.period_id]
