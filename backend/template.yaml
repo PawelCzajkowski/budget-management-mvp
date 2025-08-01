@@ -40,14 +40,31 @@ Resources:
       InlineCode: |
         exports.handler = async (event) => {
           console.log('CORS handler event:', JSON.stringify(event));
-          return {
-            statusCode: 200,
-            headers: {
-              'Access-Control-Allow-Origin': 'https://www.easybudget.cloud',
+          const requestOrigin = event.headers.origin || event.headers.Origin;
+          const allowedOrigins = [
+              'https://www.easybudget.cloud',
+              'https://easybudget.cloud',
+              'http://localhost:5173'
+          ];
+          
+          let accessControlAllowOrigin = '';
+          if (allowedOrigins.includes(requestOrigin)) {
+              accessControlAllowOrigin = requestOrigin;
+          }
+
+          const headers = {
               'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
               'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD',
               'Access-Control-Allow-Credentials': 'true'
-            },
+          };
+
+          if (accessControlAllowOrigin) {
+              headers['Access-Control-Allow-Origin'] = accessControlAllowOrigin;
+          }
+
+          return {
+            statusCode: 200,
+            headers: headers,
             body: ''
           };
         };
@@ -63,7 +80,7 @@ Resources:
           DYNAMODB_TABLE_NAME: budget-management-mvp-budgets
           COGNITO_USER_POOL_ID: !Ref UserPoolId
           COGNITO_CLIENT_ID: !Ref ClientId
-          ALLOWED_ORIGINS: 'https://www.easybudget.cloud'
+          ALLOWED_ORIGINS: 'https://www.easybudget.cloud, http://localhost:5173'
           LOG_LEVEL: "DEBUG"
           OPENAI_API_KEY: !Ref OpenAIApiKey
           LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
@@ -140,11 +157,6 @@ Resources:
         PassthroughBehavior: WHEN_NO_MATCH
         IntegrationResponses:
           - StatusCode: '200'
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'https://www.easybudget.cloud'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD'"
-              method.response.header.Access-Control-Allow-Credentials: "'true'"
       MethodResponses:
         - StatusCode: '200'
           ResponseModels:
@@ -193,11 +205,6 @@ Resources:
         PassthroughBehavior: WHEN_NO_MATCH
         IntegrationResponses:
           - StatusCode: '200'
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'https://www.easybudget.cloud'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD'"
-              method.response.header.Access-Control-Allow-Credentials: "'true'"
       MethodResponses:
         - StatusCode: '200'
           ResponseModels:
