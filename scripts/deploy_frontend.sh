@@ -10,6 +10,12 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
+# Load CloudFront Distribution ID from .env.production if it exists
+if [ -f "$(dirname "$0")/../frontend/.env.production" ]; then
+    echo "Loading CloudFront Distribution ID from .env.production file"
+    VITE_CLOUDFRONT_ID=$(grep '^VITE_CLOUDFRONT_DISTRIBUTION_ID=' "$(dirname "$0")/../frontend/.env.production" | cut -d '=' -f2)
+fi
+
 # Check if AWS CLI is installed
 if ! command -v aws &> /dev/null; then
     echo "AWS CLI is not installed. Please install it first."
@@ -18,7 +24,7 @@ fi
 
 # Default values
 S3_BUCKET=${AWS_S3_BUCKET:-"budget-management-front"}
-CLOUDFRONT_DISTRIBUTION_ID=${AWS_CLOUDFRONT_DISTRIBUTION_ID:-""}
+CLOUDFRONT_DISTRIBUTION_ID=${AWS_CLOUDFRONT_DISTRIBUTION_ID:-${VITE_CLOUDFRONT_ID:-""}}
 REGION=${AWS_REGION:-"eu-north-1"}
 
 # Parse command line arguments
