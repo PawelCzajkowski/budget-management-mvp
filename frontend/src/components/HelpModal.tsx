@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, UserPlus, Upload, Table, PlusCircle, ListChecks, CheckCircle2, LogOut, Lightbulb } from 'lucide-react';
+import { Info, UserPlus, Upload, Table, PlusCircle, ListChecks, CheckCircle2, LogOut, Lightbulb, MailQuestionMark } from 'lucide-react';
 
 interface HelpModalProps {
   open: boolean;
@@ -96,6 +96,14 @@ const HelpModal: React.FC<HelpModalProps> = ({ open, onClose }) => {
                 <div>Use the <span className="font-semibold">+ Add budget</span> button to start a new budget.</div>
               </div>
             </div>
+          </div>
+          <div className="border-t border-gray-200" />
+          <div>
+            <p className="text-lg font-semibold flex items-center gap-2 mb-2">
+              <MailQuestionMark className="text-blue-500" size={20} />
+              Contact Support
+            </p>
+            <p className="ml-7">For more questions, please reach out to our support team <a href="mailto:support@easybudget.cloud" className="text-blue-600 hover:text-blue-800 underline">via email</a>.</p>
           </div>
         </div>
       </div>
