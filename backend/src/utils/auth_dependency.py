@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from utils.jwt_utils import verify_jwt_token
+from exceptions.PremiumFeatureError import PremiumFeatureError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,4 +42,29 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
         return payload
     except Exception as e:
         logger.error(f"Token verification failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}") 
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {str(e)}")
+
+async def require_premium_user(user_payload: dict = Depends(get_current_user)):
+    """
+    Verifies that the user has premium access by checking Cognito groups.
+    Raises PremiumFeatureError if user is not a premium member.
+    Returns the user payload if access is granted.
+    """
+    logger.info(f"Checking premium access for user: {user_payload.get('sub')}")
+    
+    # Check for cognito:groups claim
+    groups = user_payload.get("cognito:groups", [])
+    if not isinstance(groups, list):
+        logger.error(f"Invalid groups claim format for user {user_payload.get('sub')}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format: groups claim is malformed"
+        )
+    
+    # Verify premium membership
+    if "PremiumUser" not in groups:
+        logger.warning(f"Non-premium user {user_payload.get('sub')} attempted to access premium feature")
+        raise PremiumFeatureError(feature_name="budget corrections")
+    
+    # Return the user payload if all checks pass
+    return user_payload

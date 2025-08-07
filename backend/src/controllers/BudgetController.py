@@ -10,7 +10,7 @@ from services.AI_Service import extract_budget_from_bytes
 import services.BudgetService as budget_service
 from models.Budget import Budget, BudgetItem, Period, Expense
 from exceptions.AuthorizationError import AuthorizationError
-from utils.auth_dependency import get_current_user
+from utils.auth_dependency import get_current_user, require_premium_user
 
 router = APIRouter()
 
@@ -155,22 +155,58 @@ async def delete_budget(budget_id: str, user: dict = Depends(get_current_user)):
         logger.error(f"Error deleting budget with ID {budget_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/validate-period-mismatch", response_model=PeriodMismatchValidationResponse)
+@router.post("/validate-period-mismatch", response_model=PeriodMismatchValidationResponse, responses={
+    403: {
+        "description": "Premium feature access denied",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "This feature requires a premium subscription",
+                    "upgrade_info": "Visit our pricing page to upgrade your account"
+                }
+            }
+        }
+    }
+})
 async def validate_period_mismatch(
     request: PeriodMismatchValidationRequest,
-    user: dict = Depends(get_current_user)
+    user: dict = Depends(require_premium_user)
 ):
+    """
+    Validate period mismatches in a budget.
+    This is a premium feature available only to premium users.
+    """
     try:
+        logger.info(f"Premium user {user['sub']} accessing period mismatch validation")
         return budget_service.validate_period_mismatch(request, user["sub"])
     except Exception as e:
+        logger.error(f"Error in period mismatch validation for user {user['sub']}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/apply-period-corrections", response_model=ApplyPeriodCorrectionsResponse)
+@router.post("/apply-period-corrections", response_model=ApplyPeriodCorrectionsResponse, responses={
+    403: {
+        "description": "Premium feature access denied",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "This feature requires a premium subscription",
+                    "upgrade_info": "Visit our pricing page to upgrade your account"
+                }
+            }
+        }
+    }
+})
 async def apply_period_corrections(
     request: ApplyPeriodCorrectionsRequest,
-    user: dict = Depends(get_current_user)
+    user: dict = Depends(require_premium_user)
 ):
+    """
+    Apply period corrections to a budget.
+    This is a premium feature available only to premium users.
+    """
     try:
+        logger.info(f"Premium user {user['sub']} applying period corrections")
         return budget_service.apply_period_corrections(request, user["sub"])
     except Exception as e:
+        logger.error(f"Error applying period corrections for user {user['sub']}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
