@@ -3,7 +3,7 @@ import type { Budget, Expense } from '../types/Budget';
 import { ChevronDown, ChevronRight, Trash2, CircleX, AlertCircle } from 'lucide-react';
 import BudgetCorrectionModal from './BudgetCorrectionModal';
 import type { ActionOptionDTO } from './BudgetCorrectionModal';
-import { budgetApi } from '../api/routes';
+import { validatePeriodMismatch } from '../utils/budgetValidation';
 
 interface EditableCellProps {
   value: string | number;
@@ -243,8 +243,8 @@ const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudg
     });
   };
 
-  // New: Handler for notification icon click
-  const handleNotificationClick = async (itemIndex: number, periodIndex: number) => {
+  // Handler for notification icon click
+  const handleNotificationClick = (itemIndex: number, periodIndex: number) => {
     const period = budgetData.list_of_budget_items[itemIndex].periods[periodIndex];
     const plannedAmount = parseFloat(period.planned_amount);
     const payload = {
@@ -263,7 +263,7 @@ const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudg
       })),
     };
     try {
-      const result = await budgetApi.validatePeriodMismatch(payload);
+      const result = validatePeriodMismatch(payload);
       setCorrectionActions(result.actions);
       setCorrectionSummary(result.summary);
       setCorrectionContext({ itemIndex, periodIndex });
