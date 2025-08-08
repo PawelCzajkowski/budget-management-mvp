@@ -26,7 +26,7 @@
                 "--reload"
             ],
             "jinja": true,
-            "cwd": "${workspaceFolder}/backend/src",
+            "cwd": "${workspaceFolder}/backend",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/backend/src"
             }
