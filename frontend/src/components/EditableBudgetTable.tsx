@@ -79,9 +79,10 @@ interface EditableBudgetTableProps {
   budget: Budget;
   onChange?: (budget: Budget) => void;
   isAuthenticated: boolean;
+  isUserPremium: boolean;
 }
 
-const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudgetTableProps) => {
+const EditableBudgetTable = ({ budget, onChange, isAuthenticated, isUserPremium }: EditableBudgetTableProps) => {
   const [expandedCells, setExpandedCells] = useState<{ [key: string]: boolean }>({});
   const [budgetData, setBudgetData] = useState<Budget>(budget);
 
@@ -394,13 +395,15 @@ const EditableBudgetTable = ({ budget, onChange, isAuthenticated }: EditableBudg
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-white">
       {/* Correction Modal */}
-      <BudgetCorrectionModal
-        open={correctionModalOpen}
-        actions={correctionActions}
-        summary={correctionSummary}
-        onApprove={handleCorrectionApprove}
-        onClose={handleCorrectionClose}
-      />
+      {isUserPremium && (
+        <BudgetCorrectionModal
+          open={correctionModalOpen}
+          actions={correctionActions}
+          summary={correctionSummary}
+          onApprove={handleCorrectionApprove}
+          onClose={handleCorrectionClose}
+        />
+      )}
       {/* Budget Header */}
       <div className="mb-6">
         <EditableCell

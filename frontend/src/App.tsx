@@ -27,6 +27,11 @@ function getUserNameFromAuth(auth: ReturnType<typeof useAuth>): string {
   return auth.user.profile.name || '';
 }
 
+function isUserPremiumFromAuth(auth: ReturnType<typeof useAuth>): boolean {
+  if (!auth.user) return false;
+  return auth.user.profile['cognito:groups'].includes('PremiumUser') || false;
+}
+
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -263,7 +268,7 @@ function App() {
                       />
                     </span>
                   </span>
-                  {editing && <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} />}
+                  {editing && <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} isUserPremium={isUserPremiumFromAuth(auth)} />}
                   {!editing && <BudgetTable budget={budget} />}
                 </>
               )}
@@ -378,7 +383,7 @@ function App() {
               )}
               {budget && !editing && <BudgetTable budget={budget} />}
               {budget && editing && (<>
-                <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} />
+                <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} isUserPremium={isUserPremiumFromAuth(auth)} />
               </>
               )}
             </div>
