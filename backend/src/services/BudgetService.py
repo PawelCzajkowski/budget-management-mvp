@@ -3,19 +3,28 @@ from repositories.BugetRepository import BudgetRepository
 from models.BudgetDTO import ComplexBudgetDTO, BudgetItemDTO, PeriodMismatchValidationRequest, PeriodMismatchValidationResponse, ActionOptionDTO, ApplyPeriodCorrectionsRequest, ApplyPeriodCorrectionsResponse
 from decimal import Decimal
 from exceptions.AuthorizationError import AuthorizationError
+from exceptions.BudgetLimitExceededError import BudgetLimitExceededError
 from datetime import datetime, timezone
 
 
 budget_repository = BudgetRepository()
 
-def create_budget(budget: Budget, user_id: str) -> ComplexBudgetDTO:
+def create_budget(budget: Budget, user_id: str, user_groups: list[str]) -> ComplexBudgetDTO:
     """
     Create a new budget.
     Returns the created budget as ComplexBudgetDTO.
+    Raises BudgetLimitExceededError if a free user tries to create more than one budget.
     """
+    # Check if user is a free user (not in PremiumUser group)
+    is_free_user = "PremiumUser" not in user_groups
+    
+    if is_free_user:
+        # Get current user's budgets
+        existing_budgets = budget_repository.get_budgets_id_by_user(user_id)
+        if existing_budgets and len(existing_budgets) >= 1:
+            raise BudgetLimitExceededError()
 
     budget_repository.put_budget(budget)
-
     return ComplexBudgetDTO.parse_from_Budget(budget)
 
 def get_budget(budget_id: str, user_id: str) -> Budget:

@@ -10,6 +10,7 @@ from services.AI_Service import extract_budget_from_bytes
 import services.BudgetService as budget_service
 from models.Budget import Budget, BudgetItem, Period, Expense
 from exceptions.AuthorizationError import AuthorizationError
+from exceptions.BudgetLimitExceededError import BudgetLimitExceededError
 from utils.auth_dependency import get_current_user, require_premium_user
 
 router = APIRouter()
@@ -37,6 +38,12 @@ async def create_budget(request: ComplexBudgetDTO, response: Response, user: dic
         logger.info("Creating a new budget")
         budget_id = generate_id()
         utc_now = datetime.now(timezone.utc).isoformat()
+        
+        # Get user's Cognito groups, defaulting to empty list if not present
+        user_groups = user.get("cognito:groups", [])
+        if not isinstance(user_groups, list):
+            user_groups = []
+            
         budget = Budget(
             id=budget_id,
             title=request.budget.title or "",
@@ -74,7 +81,9 @@ async def create_budget(request: ComplexBudgetDTO, response: Response, user: dic
         )
         logger.info(f"Budget created with ID: {budget_id}")
         response.headers["Location"] = f"/budgets/{budget_id}"
-        budget_service.create_budget(budget, user["sub"])
+        budget_service.create_budget(budget, user["sub"], user_groups)
+    except BudgetLimitExceededError as e:
+        raise e
     except Exception as e:
         logger.error(f"Error creating budget: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

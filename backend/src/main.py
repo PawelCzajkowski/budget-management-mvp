@@ -1,11 +1,8 @@
 import os
-import sys
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, JSONResponse
 from controllers import BudgetController
-from utils.auth_dependency import get_current_user
-import services.BudgetService as budget_service
 from mangum import Mangum
 import logging
 
@@ -51,18 +48,6 @@ async def log_requests(request: Request, call_next):
 @app.get("/")
 async def root():
     return RedirectResponse(url="/budgets")
-
-# Direct handler for /budgets endpoint
-@app.get("/budgets")
-async def get_all_budgets(user: dict = Depends(get_current_user)):
-    try:
-        logger.info("Fetching all budget IDs from root handler")
-        budget_ids = budget_service.get_all_budget_ids(user["sub"])
-        logger.info(f"Fetched {len(budget_ids)} budget IDs from root handler")
-        return budget_ids
-    except Exception as e:
-        logger.error(f"Error fetching budget IDs from root handler: {str(e)}")
-        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 # Include routers
 app.include_router(BudgetController.router, prefix="/budgets", tags=["budgets"])
