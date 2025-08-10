@@ -4,8 +4,8 @@ import FileUpload from './components/FileUpload'
 import { Routes, Route } from 'react-router-dom'
 import type { Budget, ComplexBudgetDTO } from './types/Budget'
 import { budgetApi, setApiAuthToken } from './api/routes'
-import type { ApiError } from './api/routes'
 import { mapRequestToBudget, mapBudgetToComplexBudgetDTO } from './utils/dtoMappers'
+import { NotificationProvider, useNotification } from './context/NotificationContext'
 import BudgetTable from './components/BudgetTable'
 import EditableBudgetTable from './components/EditableBudgetTable'
 import SideNav from './components/SideNav'
@@ -28,13 +28,13 @@ function getUserNameFromAuth(auth: ReturnType<typeof useAuth>): string {
 }
 
 function isUserPremiumFromAuth(auth: ReturnType<typeof useAuth>): boolean {
-  if (!auth.user) return false;
-  return auth.user.profile['cognito:groups'].includes('PremiumUser') || false;
+  if (!auth.user?.profile) return false;
+  const groups = auth.user.profile['cognito:groups'];
+  return Array.isArray(groups) ? groups.includes('PremiumUser') : false;
 }
 
 function App() {
   const [budget, setBudget] = useState<Budget | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState<boolean>(false)
   const [saving, setSaving] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
@@ -72,39 +72,36 @@ function App() {
     setApiAuthToken(auth.user?.access_token ?? null);
   }, [auth.user]);
 
+  const { showError, showNotification } = useNotification();
+
   const handleDataReceived = async (data: ComplexBudgetDTO) => {
     try {
       // Here we would normally make an API call to create/import the budget
       // For now, we'll assume the data is already in the correct format
-      setBudget(mapRequestToBudget(data))
-      setError(null)
+      setBudget(mapRequestToBudget(data));
+      showNotification('Budget data processed successfully');
     } catch (err) {
-      const apiError = err as ApiError
-      setError(apiError.message || 'Failed to process budget data')
-      console.error('Error processing budget data:', err)
+      showError(err instanceof Error ? err.message : 'Failed to process budget data');
+      console.error('Error processing budget data:', err);
     }
   }
 
   const handleBudgetSelect = async (budgetId: string) => {
     try {
-      // Fetch the budget by ID
       setLoading(true);
-      const fetchedBudget = await budgetApi.getBudget(budgetId)
-      setBudget(mapRequestToBudget(fetchedBudget))
-      setError(null)
+      const fetchedBudget = await budgetApi.getBudget(budgetId);
+      setBudget(mapRequestToBudget(fetchedBudget));
     } catch (err) {
-      const apiError = err as ApiError
-      setError(apiError.message || 'Failed to load budget')
-      console.error('Error loading budget:', err)
+      showError(err instanceof Error ? err.message : 'Failed to load budget');
+      console.error('Error loading budget:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   const handleSave = async () => {
     if (!budget) return;
     setSaving(true);
-    setError(null);
     setSaveSuccess(false);
     try {
       const dto = mapBudgetToComplexBudgetDTO(budget);
@@ -113,14 +110,16 @@ function App() {
         // If HTTP 201, reload SideNav
         if (response === 201) {
           setSideNavKey(k => k + 1);
+          showNotification('Budget created successfully');
         }
       } else {
         await budgetApi.updateBudget(budget.id, dto);
+        showNotification('Budget updated successfully');
       }
       setSaveSuccess(true);
     } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to save budget');
+      showError(err instanceof Error ? err.message : 'Failed to save budget');
+      console.error('Error saving budget:', err);
     } finally {
       setSaving(false);
     }
@@ -129,18 +128,18 @@ function App() {
   const handleDelete = async () => {
     if (!budget) return;
     setDeleting(true);
-    setError(null);
     setDeleteSuccess(false);
     try {
       const response = await budgetApi.deleteBudget(budget.id);
       if (response === 204) {
         setSideNavKey(k => k + 1);
+        setBudget(null);
+        setDeleteSuccess(true);
+        showNotification('Budget deleted successfully');
       }
-      setBudget(null);
-      setDeleteSuccess(true);
     } catch (err) {
-      const apiError = err as ApiError;
-      setError(apiError.message || 'Failed to delete budget');
+      showError(err instanceof Error ? err.message : 'Failed to delete budget');
+      console.error('Error deleting budget:', err);
     } finally {
       setDeleting(false);
     }
@@ -373,14 +372,6 @@ function App() {
               {!budget && <div className="flex justify-center items-center h-96">
                 <FileUpload onDataReceived={handleDataReceived} />
               </div>}
-              {error && (
-                <div className="text-red-500 text-sm">
-                  {error}
-                </div>
-              )}
-              {saveSuccess && (
-                <div className="text-green-600 text-sm mb-2">Budget saved successfully!</div>
-              )}
               {budget && !editing && <BudgetTable budget={budget} />}
               {budget && editing && (<>
                 <EditableBudgetTable budget={budget} onChange={setBudget} isAuthenticated={auth.isAuthenticated} isUserPremium={isUserPremiumFromAuth(auth)} />
@@ -394,4 +385,13 @@ function App() {
   )
 }
 
-export default App
+// Wrap App with NotificationProvider
+const AppWithNotifications = () => {
+  return (
+    <NotificationProvider>
+      <App />
+    </NotificationProvider>
+  );
+};
+
+export default AppWithNotifications;

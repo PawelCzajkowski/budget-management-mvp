@@ -1,5 +1,6 @@
 import axios, { HttpStatusCode } from 'axios';
 import type { BudgetDTO, ComplexBudgetDTO } from '../types/Budget';
+import { getErrorMessage } from './errors';
 
 // Get API base URL from environment variables or use default
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://7bt2ch2nna.execute-api.eu-north-1.amazonaws.com/v1';
@@ -22,7 +23,7 @@ export function setApiAuthToken(token: string | null) {
   currentToken = token;
 }
 
-// Attach JWT token to all requests if present
+// Request interceptor for JWT token
 api.interceptors.request.use((config) => {
   if (currentToken) {
     config.headers = config.headers || {};
@@ -30,6 +31,15 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const errorMessage = getErrorMessage(error);
+    throw new Error(errorMessage);
+  }
+);
 
 export const budgetApi = {
   /**
@@ -102,38 +112,5 @@ export const budgetApi = {
   },
 };
 
-// Error handling types
-export interface ApiError {
-  status: number;
-  message: string;
-  detail?: string;
-}
-
-// Add global response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const apiError: ApiError = {
-      status: error.response?.status || 500,
-      message: error.response?.data?.detail || 'An unexpected error occurred',
-      detail: error.response?.data?.detail,
-    };
-
-    // You might want to handle certain status codes differently
-    switch (apiError.status) {
-      case 403:
-        // Handle authorization errors
-        console.error('Authorization error:', apiError.message);
-        break;
-      case 404:
-        // Handle not found errors
-        console.error('Resource not found:', apiError.message);
-        break;
-      default:
-        // Handle other errors
-        console.error('API error:', apiError);
-    }
-
-    return Promise.reject(apiError);
-  }
-);
+// Export types needed by consumers
+export type { HttpStatusCode };
