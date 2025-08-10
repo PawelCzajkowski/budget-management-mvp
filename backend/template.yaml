@@ -78,6 +78,7 @@ Resources:
         Variables:
           PYTHONPATH: /var/task:/var/task/src
           DYNAMODB_TABLE_NAME: budget-management-mvp-budgets
+          DYNAMODB_USER_USAGE_TABLE_NAME: budget-management-mvp-UserUsageTracker
           COGNITO_USER_POOL_ID: !Ref UserPoolId
           COGNITO_CLIENT_ID: !Ref ClientId
           ALLOWED_ORIGINS: 'https://www.easybudget.cloud, http://localhost:5173'

@@ -21,7 +21,7 @@ prompt_template = ChatPromptTemplate.from_messages(
 )
 
 # llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
-llm = init_chat_model("gpt-4.1-mini", model_provider="openai")
+llm = init_chat_model("gpt-5-mini", model_provider="openai")
 
 structured_response = llm.with_structured_output(schema=BudgetDTO)
 

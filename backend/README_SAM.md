@@ -39,7 +39,8 @@ All required environment variables must be set in a `.env` file in the `backend`
 
 **Required variables:**
 
-- `DYNAMODB_TABLE_NAME` — DynamoDB table name (e.g., `budget-management-mvp-budgets`)
+- `DYNAMODB_TABLE_NAME` — DynamoDB table name for budgets (e.g., `budget-management-mvp-budgets`)
+- `DYNAMODB_USER_USAGE_TABLE_NAME` — DynamoDB table name for user usage tracking (e.g., `budget-management-mvp-user-usage`)
 - `COGNITO_USER_POOL_ID` — Cognito User Pool ID (e.g., `your-user-pool-id-here`)
 - `LAMBDA_EXECUTION_ROLE_ARN` — ARN for the Lambda execution role (e.g., `arn:aws:iam::your-account-id:role/lambda-execution-role`)
 - `OPENAI_API_KEY` — API key for OpenAI (required for AI features)

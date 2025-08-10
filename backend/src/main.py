@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, JSONResponse
 from controllers import BudgetController
 from mangum import Mangum
+from routers import usage_router
+from exceptions.ImportLimitExceededError import ImportLimitExceededError
+from utils.import_limit_middleware import ImportLimitMiddleware
 import logging
 
 # Configure logging
@@ -34,7 +37,7 @@ app.add_middleware(
     max_age=86400,  # 24 hours
 )
 
-# Add a middleware to log requests for debugging
+# Add middlewares
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     print(f"Request path: {request.url.path}")
@@ -43,6 +46,19 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     print(f"Response status: {response.status_code}")
     return response
+
+app.add_middleware(ImportLimitMiddleware)
+
+# Exception handlers
+@app.exception_handler(ImportLimitExceededError)
+async def import_limit_exceeded_handler(request: Request, exc: ImportLimitExceededError):
+    return JSONResponse(
+        status_code=429,
+        content=exc.to_dict()
+    )
+
+# Include routers
+app.include_router(usage_router.router)
 
 # Root path handler
 @app.get("/")

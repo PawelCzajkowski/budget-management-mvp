@@ -1,0 +1,15 @@
+  UserUsageTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DYNAMODB_USER_USAGE_TABLE_NAME
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: month
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: month
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
