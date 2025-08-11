@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { budgetApi } from '../api/routes';
-import type { ApiError } from '../api/routes';
+import type { ApiError } from '../api/errors';
+import { useNotification } from '../context/NotificationContext';
 
 interface FileUploadProps {
   onDataReceived: (data: any) => void;
@@ -9,21 +10,21 @@ interface FileUploadProps {
 
 const FileUpload = ({ onDataReceived }: FileUploadProps) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { showError } = useNotification();
 
   const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setLoading(true);
-    setError(null);
 
     try {
       const data = await budgetApi.importCsvBudget(file);
       onDataReceived(data);
     } catch (err) {
       const apiError = err as ApiError;
-      setError(apiError.message || 'Error loading data. Please try again.');
+      const errorMessage = apiError.message || 'Error loading data. Please try again.';
+      showError(errorMessage);
       console.error('Error:', apiError);
     } finally {
       setLoading(false);
@@ -47,7 +48,6 @@ const FileUpload = ({ onDataReceived }: FileUploadProps) => {
       dark:file:bg-neutral-700 dark:file:text-neutral-400"
       />
       {loading && <div className="text-blue-600">Loading...</div>}
-      {error && <div className="text-red-600">{error}</div>}
     </div>
   );
 };

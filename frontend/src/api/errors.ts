@@ -10,6 +10,12 @@ export interface ApiError {
 export function getErrorMessage(error: unknown): string {
     if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<ApiError>;
+        
+        // Handle rate limit errors (429)
+        if (axiosError.response?.status === 429) {
+            return axiosError.response.data.detail || axiosError.response.data.message || 'CSV import limit reached';
+        }
+
         if (axiosError.response?.data) {
             const data = axiosError.response.data;
             if (typeof data === 'string') {
